@@ -21,19 +21,19 @@ F:'read'
 ID: ('a'..'z'|'A'..'Z'|'_')+ ;
 
 UOP: '-'
-    | 'not';
+    | 'not ';
 
 BOP: '+' | '-' | '*' | '/'
-    | 'and' | 'or'
+    | ' and ' | ' or '
     | '<' | '<=' | '=' | '!=' | '>=' | '>';
 
 E: K 
     | '(' E ')'
     | ID
     | UOP E
-    | E BOP E
+    //| E BOP E
     | F '(' E* ')'
-    | E '[' E ']'
+    //| E '[' E ']'
     | 'new array of' T '[' E ']';
 
 I: 'var ' ID ' : ' T 
@@ -42,8 +42,8 @@ I: 'var ' ID ' : ' T
     | 'if ' E ' then ' E ' else ' E
     | 'while ' E ' do'
     | F '(' E* ')'
-    | 'skip'
-    | I ';' I ;
+    | 'skip';
+    //| I ';' I ;
 
 WS : [ \t\r\n]+ -> skip;
 
