@@ -214,18 +214,6 @@ public class bfBaseListener implements bfListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitAccesTab(bfParser.AccesTabContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterOther(bfParser.OtherContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitOther(bfParser.OtherContext ctx) { }
 
 	/**
 	 * {@inheritDoc}

@@ -176,14 +176,4 @@ public interface bfListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitAccesTab(bfParser.AccesTabContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link bfParser#other}.
-	 * @param ctx the parse tree
-	 */
-	void enterOther(bfParser.OtherContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link bfParser#other}.
-	 * @param ctx the parse tree
-	 */
-	void exitOther(bfParser.OtherContext ctx);
 }

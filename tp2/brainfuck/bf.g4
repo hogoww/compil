@@ -4,9 +4,9 @@ grammar bf;
 //entry rule
 prog: program;
 
-funcDef: funcName '(' (ID ':' type)* ')' (':' type) '\n' ('var'(' ' ID ':' type)+ '\n')? instruct;
+funcDef: funcName '(' (ID ':' type)* ')' (':' type) ('var'( ID ':' type)+ )? instruct;
 
-program: ('var' (' ' ID ':' type)+ '\n')? funcDef* instruct;
+program: ('var' ( ID ':' type)+)? funcDef* instruct;
 
 CONST: NUMBER
     | 'true' 
@@ -40,9 +40,9 @@ instruct:   (ID | accesTab) ':=' expr (';' instruct)?
 
 exprLA : or ;
 
-or : and (' or ' and)*;
+or : and ('or' and)*;
 
-and: ene ( ' and ' ene)*;
+and: ene ( 'and' ene)*;
 
 //Equal not equal
 ene : ltgt ('=' ltgt | '!=' ltgt)*;
@@ -62,5 +62,3 @@ atomExpr : CONST | ID | func | accesTab | '(' or ')' | '-' atomExpr | 'not ' ato
 accesTab: (ID | func) '[' expr ']';
 
 WS : [ \t\r\n]+ -> skip;
-
-other : .;
