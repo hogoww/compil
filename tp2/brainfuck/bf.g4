@@ -5,11 +5,11 @@ grammar bf;
 
 
 //entry rule
-prog: i;
+prog: p;
 
+d: f '(' (ID ':' t)* ')' (':' t) '\n' ('var'(' ' ID ':' t)+ '\n')? i;
 
-
-
+p: ('var' (' ' ID ':' t)+ '\n')? d* i;
 
 K: N
     | 'true' 
@@ -31,18 +31,15 @@ ID: ('a'..'z'|'A'..'Z'|'_')+ ;
 e: K
     | ID
     | exprLA 
-    | f '(' e* ')'
-    //| e '[' e ']'
-    | 'skip' //On a passé le skip dans les expressions, sinon ceci n'est pas possible dans les pending else. à voir..
-        //Une expression peut renvoyer un résultat, pas obligatoire -> void
+    | func
+    | accesTab
     | 'new array of' t '[' e ']';
 
-i:   ID ':=' e
-    | e '[' e ']:=' e
-    | 'if ' e ' then ' e ' else ' e
-    | 'while ' e ' do'
-    | f '(' e* ')';
-//| i ';' i ;
+i:   (ID | accesTab) ':=' e (';' i)?
+    | 'if ' e ' then ' i (';' i)? ' else ' i (';' i)?//ça ne dois pas etre des expressions ici.
+    | 'while ' e ' do' i (';' i)?
+    | 'skip' (';' i)?
+    | f '(' e* ')' (';' i)?;
 
 exprLA : or;
 
@@ -59,9 +56,11 @@ additionExpr : multiplyExpr
 
 multiplyExpr : atomExpr ('*' atomExpr | '/' atomExpr)* ;
 
-atomExpr : e '(' e ')' | '-' atomExpr | 'not ' atomExpr;
-//e est passé forcé entre parenthese, obligé pour que ça marche
+func: f '(' e* ')';
 
+atomExpr : K | ID | func | accesTab | '(' or')' | '-' atomExpr | 'not ' atomExpr;
+
+accesTab: (ID | func) '[' e ']';
 
 WS : [ \t\r\n]+ -> skip;
 

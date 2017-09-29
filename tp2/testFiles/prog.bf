@@ -1,5 +1,4 @@
-var size:integer
-read(size)
-var tab:array of integer
-tab:=new array of integer[size]
+var size:integer tab:array of integer
+read(size);
+tab:=new array of integer[size];
 init(tab,size)
