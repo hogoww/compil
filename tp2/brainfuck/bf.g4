@@ -1,54 +1,53 @@
 grammar bf;
 
 
-
-
-
 //entry rule
-prog: p;
+prog: program;
 
-d: f '(' (ID ':' t)* ')' (':' t) '\n' ('var'(' ' ID ':' t)+ '\n')? i;
+funcDef: funcName '(' (ID ':' type)* ')' (':' type) '\n' ('var'(' ' ID ':' type)+ '\n')? instruct;
 
-p: ('var' (' ' ID ':' t)+ '\n')? d* i;
+program: ('var' (' ' ID ':' type)+ '\n')? funcDef* instruct;
 
-K: N
+CONST: NUMBER
     | 'true' 
     | 'false';
 
-N: ('0'..'9')+;
+NUMBER: ('0'..'9')+;
         
-t:'integer'
+type:'integer'
     | 'boolean'
-    | 'array of' t;
+    | 'array of' type;
 
 
-f:'read'
+funcName:'read'
     |'write'
     | ID;
 
-ID: ('a'..'z'|'A'..'Z'|'_')+ ;
+ID: ('a'..'z'|'A'..'Z'|'_')('a'..'z'|'A'..'Z'|'_'|'0'..'9')* ;
 
-e: K
+expr: CONST
     | ID
     | exprLA 
     | func
     | accesTab
-    | 'new array of' t '[' e ']';
+    | 'new array of' type '[' expr ']';
 
-i:   (ID | accesTab) ':=' e (';' i)?
-    | 'if ' e ' then ' i (';' i)? ' else ' i (';' i)?//ça ne dois pas etre des expressions ici.
-    | 'while ' e ' do' i (';' i)?
-    | 'skip' (';' i)?
-    | f '(' e* ')' (';' i)?;
+instruct:   (ID | accesTab) ':=' expr (';' instruct)?
+    | 'if' expr 'then' instruct (';' instruct)? 'else' instruct (';' instruct)?//ça ne dois pas etre des expressions ici.
+    | 'while' expr 'do' instruct (';' instruct)?
+    | 'skip' (';' instruct)?
+    | funcName '(' expr* ')' (';' instruct)?;
 
-exprLA : or;
+exprLA : or ;
 
 or : and (' or ' and)*;
 
 and: ene ( ' and ' ene)*;
 
+//Equal not equal
 ene : ltgt ('=' ltgt | '!=' ltgt)*;
 
+//lower than greater than
 ltgt : additionExpr ('<' additionExpr | '<=' additionExpr | '>=' additionExpr | '>' additionExpr)*;
 
 additionExpr : multiplyExpr
@@ -56,11 +55,12 @@ additionExpr : multiplyExpr
 
 multiplyExpr : atomExpr ('*' atomExpr | '/' atomExpr)* ;
 
-func: f '(' e* ')';
+func: funcName '(' expr* ')';
 
-atomExpr : K | ID | func | accesTab | '(' or')' | '-' atomExpr | 'not ' atomExpr;
+atomExpr : CONST | ID | func | accesTab | '(' or ')' | '-' atomExpr | 'not ' atomExpr;
 
-accesTab: (ID | func) '[' e ']';
+accesTab: (ID | func) '[' expr ']';
 
 WS : [ \t\r\n]+ -> skip;
 
+other : .;
