@@ -1,0 +1,3 @@
+abstract class BinOp extends exprLA{
+    exprLA e1,e2;
+}
