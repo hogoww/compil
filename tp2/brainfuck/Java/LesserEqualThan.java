@@ -1,6 +1,6 @@
 class LesserEqualThan extends BinOp{
 
-    LesserEqualThan(ExprArith e1,ExprArith e2){
+    LesserEqualThan(ExprLA e1,ExprLA e2){
 	this.e1=e1;
 	this.e2=e2;
     }

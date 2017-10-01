@@ -1,5 +1,5 @@
 class Div extends BinOp{
-    Div(ExprArith e1,ExprArith e2){
+    Div(ExprLA e1,ExprLA e2){
 	this.e1=e1;
 	this.e2=e2;
     }

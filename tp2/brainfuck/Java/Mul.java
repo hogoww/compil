@@ -1,5 +1,5 @@
 class Mul extends BinOp{
-    Mul(ExprArith e1,ExprArith e2){
+    Mul(ExprLA e1,ExprLA e2){
 	this.e1=e1;
 	this.e2=e2;
     }

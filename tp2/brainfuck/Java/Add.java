@@ -1,5 +1,5 @@
 class Add extends BinOp{
-    Add(ExprArith e1,ExprArith e2){
+    Add(ExprLA e1,ExprLA e2){
 	this.e1=e1;
 	this.e2=e2;
     }

@@ -1,6 +1,6 @@
 class Inv extends UnOp{
     
-    Inv(ExprArith e){
+    Inv(ExprLA e){
 	this.e=e;
     }
     

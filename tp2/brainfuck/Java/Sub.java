@@ -1,5 +1,5 @@
 class Sub extends BinOp{
-    Sub(ExprArith e1,ExprArith e2){
+    Sub(ExprLA e1,ExprLA e2){
 	this.e1=e1;
 	this.e2=e2;
     }
