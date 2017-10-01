@@ -1,64 +1,103 @@
 grammar bf;
 
-
 //entry rule
 prog: program;
 
-funcDef: ID '(' (ID ':' type)* ')' (':' type) ('var'( ID ':' type)+ )? instruct;
+funcDef: id '(' (id ':' type)* ')' (':' type) declarVar? instruct;
 
-program: ('var' ( ID ':' type)+)? funcDef* instruct;
+program: declarVar? funcDef* instruct;
 
-CONST: NUMBER
-    | 'true' 
-    | 'false';
-
-NUMBER: ('0'..'9')+;
+declarVar: 'var' ( id ':' type)+;
         
-type:'integer'
-    | 'boolean'
-    | 'array of' type;
+type returns [Type t] :'integer' {$t=new TypeInt();}
+    | 'boolean' {$t=new TypeBool();}
+    | 'array of' tempt = type {$t=new TypeArray($tempt.t);};
+
+const returns [Cte $value]: n = NUMBER {$value = new CteInt(Integer.parseInt($n.text));}
+    | c = 'true' {$value = new CteBool(Boolean.parseBool($c.text));}
+    | c = 'false' {$value = new CteBool(Boolean.parseBool($c.text));} ;
+
+funcName returns [FuncName name]:
+        'read' {$name=new FuncName(new ID("read"));}
+    |'write' {$name=new FuncName(new ID("write"));}
+    | n = id {$name=new FuncName($n.name);};
 
 
-funcName:'read'
-    |'write'
-    | ID;
+id returns [ID i]: ide = IDENTIFICATEUR {$i=new ID($ide.text);};
 
-ID: ('a'..'z'|'A'..'Z'|'_')('a'..'z'|'A'..'Z'|'_'|'0'..'9')* ;
+expr returns [Expression e]: c = const {$e = $c;}
+    | i = id {$e = $i;}
+    | ela = exprLA {$e = $ela;} 
+    | f = func {$e = $f;}
+    | tab = accesTab {$e = $tab;}
+    | 'new array of' t = type '[' exp = expr ']' {$e=new NewArrayOf($t,$exp);} ;
 
-expr: CONST
-    | ID
-    | exprLA 
-    | func
-    | accesTab
-    | 'new array of' type '[' expr ']';
-
-instruct:   (ID | accesTab) ':=' expr (';' instruct)?
+instruct:   (id | accesTab) ':=' expr (';' instruct)?
     | 'if' expr 'then' instruct (';' instruct)? 'else' instruct (';' instruct)?//ça ne dois pas etre des expressions ici.
     | 'while' expr 'do' instruct (';' instruct)?
     | 'skip' (';' instruct)?
-    | funcName '(' expr* ')' (';' instruct)?;
+    | func (';' instruct)?;
 
-exprLA : or ;
+accesTab returns [AccesTab at]: (
+            i = id {$at=new AccesTabID($i);}
+        | f = func {$at=new AccesTabID($f);}
+        ) '[' e = expr {$at.addExpr($e);} ']';
 
-or : and ('or' and)*;
+func returns [Func f]:
+        n = funcName {$f=new Func($n);}
+ '(' (expr {$f.AddArg(expr);})* ')';
 
-and: ene ( 'and' ene)*;
+exprLA  returns [ExprLA value] :
+        e = or {$value = $e.value;} ;
+
+or returns [ExprLA value]: e = and {$value = $e.value;}
+        ('or' e2 = and {$value = new Or($value,$e2.value);})*;
+
+and returns [ExprLA value]: e = ene {$value=$e.value;}
+        ( 'and' e2 = ene {$value = new And($value,$e2.value);})*;
 
 //Equal not equal
-ene : ltgt ('=' ltgt | '!=' ltgt)*;
+ene returns [ExprLA value]: e = ltgt {$value=$e.value;}
+        (
+            '=' e2 = ltgt {$value = new Equals($value,$e2.value);}
+        | '!=' e2 = ltgt {$value = new NotEquals($value,$e2.value);}
+        )*;
 
 //lower than greater than
-ltgt : additionExpr ('<' additionExpr | '<=' additionExpr | '>=' additionExpr | '>' additionExpr)*;
+ltgt returns [ExprLA value] : e1 = additionExpr {$value=$e1.value;}
+        (
+            '<' e2 = additionExpr {$value = new LesserThan($value,$e2.value);}
+        | '<=' e2 = additionExpr {$value = new LesserEqualThan($value,$e2.value);}
+        | '>=' e2 = additionExpr {$value = new GreaterEqualThan($value,$e2.value);}
+        | '>' e2 = additionExpr {$value = new GreaterThan($value,$e2.value);}
+        )*;
 
-additionExpr : multiplyExpr
-        ('+' multiplyExpr | '-' multiplyExpr)* ;
+additionExpr  returns [ExprLA value] :
+        e1 = multiplyExpr {$value = $e1.value;}
+        ('+' e2 = multiplyExpr
+            {$value = new Add($value,$e2.value);}
+        | '-' e2 = multiplyExpr
+            {$value = new Sub($value,$e2.value);})* ;
 
-multiplyExpr : atomExpr ('*' atomExpr | '/' atomExpr)* ;
+multiplyExpr  returns [ExprLA value] :
+        e1 = atomExpr {$value = $e1.value;}
+        ('*' e2 = atomExpr {$value = new Mul($value,  $e2.value);}
+        | '/' e2 = atomExpr
+            {$value = new Div($value,  $e2.value);})* ;
 
-func: funcName '(' expr* ')';
+atomExpr  returns [ExprLA value] :
+        e = const {$value=$e.value;}
+    | i = id {$value = $i;}
+    | f = func {$value = $f;}
+    | a = accesTab {$value = $a;}
+    | '(' e1 = or  ')' {$value = $e1.value;}
+    | 'not' e2 = atomExpr {$value = new Inv($e2.value);}
+    | '-' e2 = atomExpr {$value = new Inv($e2.value);} ;
 
-atomExpr : CONST | ID | func | accesTab | '(' or ')' | '-' atomExpr | 'not ' atomExpr;
 
-accesTab: (ID | func) '[' expr ']';
+IDENTIFICATEUR : (('a'..'z'|'A'..'Z'|'_')('a'..'z'|'A'..'Z'|'_'|'0'..'9')*) ;
 
-WS : [ \t\r\n]+ -> skip;
+NUMBER: ('0'..'9')+;
+
+
+WS : [ \t\r\n]+ -> skip ;
