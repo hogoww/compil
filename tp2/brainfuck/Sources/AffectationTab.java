@@ -4,7 +4,7 @@ class AffectationTab extends Affectation{
 	this.tab=tab;
 	this.e=e;
     }
-    Réaffecter(Expression e){
+    void Reaffecter(Expression e){
 	this.e=e;
     }
 }

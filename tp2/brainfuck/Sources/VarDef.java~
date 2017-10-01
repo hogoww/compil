@@ -1,0 +1,6 @@
+class VarDef{
+    ArrayList<DeclarationVar> d;
+    VarDef(ArrayList<DeclarationVar> d){
+	d.this=d;
+    }
+}

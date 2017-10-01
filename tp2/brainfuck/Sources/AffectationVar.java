@@ -1,10 +1,10 @@
 class AffectationVar extends Affectation{
-    Id id;
-    AffectationVar(Id id, Expression e){
+    ID id;
+    AffectationVar(ID id, Expression e){
 	this.id=id;
 	this.e=e;
     }
-    Réaffecter(Expression e){
-	this.e=e;
+    void Reaffecter(Expression e){
+        this.e=e;
     }
 }

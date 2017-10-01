@@ -3,11 +3,13 @@ grammar bf;
 //entry rule
 prog: program;
 
-funcDef: id '(' (id ':' type)* ')' (':' type) declarVar? instruct;
+funcDef: id '(' declarationVar* ')' (':' type) declarVar? instruct;
 
 program: declarVar? funcDef* instruct;
 
-declarVar: 'var' ( id ':' type)+;
+declarVar: 'var' declarationVar +;
+
+declarationVar: id ':' type;
         
 type returns [Type e] :'integer' {$e=new TypeInt();}
     | 'boolean' {$e=new TypeBool();}
