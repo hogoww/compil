@@ -51,6 +51,18 @@ public class bfBaseListener implements bfListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterDeclarVar(bfParser.DeclarVarContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitDeclarVar(bfParser.DeclarVarContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterType(bfParser.TypeContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -58,6 +70,18 @@ public class bfBaseListener implements bfListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitType(bfParser.TypeContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterConstante(bfParser.ConstanteContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitConstante(bfParser.ConstanteContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -75,13 +99,25 @@ public class bfBaseListener implements bfListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterExpr(bfParser.ExprContext ctx) { }
+	@Override public void enterId(bfParser.IdContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitExpr(bfParser.ExprContext ctx) { }
+	@Override public void exitId(bfParser.IdContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterExpre(bfParser.ExpreContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitExpre(bfParser.ExpreContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -94,6 +130,30 @@ public class bfBaseListener implements bfListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitInstruct(bfParser.InstructContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterAccesTab(bfParser.AccesTabContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitAccesTab(bfParser.AccesTabContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterFunc(bfParser.FuncContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitFunc(bfParser.FuncContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -183,18 +243,6 @@ public class bfBaseListener implements bfListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterFunc(bfParser.FuncContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitFunc(bfParser.FuncContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterAtomExpr(bfParser.AtomExprContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -202,18 +250,6 @@ public class bfBaseListener implements bfListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitAtomExpr(bfParser.AtomExprContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterAccesTab(bfParser.AccesTabContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitAccesTab(bfParser.AccesTabContext ctx) { }
 
 	/**
 	 * {@inheritDoc}

@@ -9,48 +9,48 @@ program: declarVar? funcDef* instruct;
 
 declarVar: 'var' ( id ':' type)+;
         
-type returns [Type t] :'integer' {$t=new TypeInt();}
-    | 'boolean' {$t=new TypeBool();}
-    | 'array of' tempt = type {$t=new TypeArray($tempt.t);};
+type returns [Type e] :'integer' {$e=new TypeInt();}
+    | 'boolean' {$e=new TypeBool();}
+    | 'array of' tempt = type {$e=new TypeArray($type);};
 
-const returns [Cte $value]: n = NUMBER {$value = new CteInt(Integer.parseInt($n.text));}
-    | c = 'true' {$value = new CteBool(Boolean.parseBool($c.text));}
-    | c = 'false' {$value = new CteBool(Boolean.parseBool($c.text));} ;
+constante returns [Cte value]: n = NUMBER {$value=new CteInt(Integer.parseInt($n.text));}
+    | c = 'true' {$value=new CteBool(Boolean.parseBoolean($c.line);}
+    | c = 'false' {$value=new CteBool(Boolean.parseBoolean($c.text));} ;
 
 funcName returns [FuncName name]:
         'read' {$name=new FuncName(new ID("read"));}
     |'write' {$name=new FuncName(new ID("write"));}
-    | n = id {$name=new FuncName($n.name);};
+    | i = id {$name=new FuncName($i.text);};
 
 
 id returns [ID i]: ide = IDENTIFICATEUR {$i=new ID($ide.text);};
 
-expr returns [Expression e]: c = const {$e = $c;}
-    | i = id {$e = $i;}
-    | ela = exprLA {$e = $ela;} 
-    | f = func {$e = $f;}
-    | tab = accesTab {$e = $tab;}
-    | 'new array of' t = type '[' exp = expr ']' {$e=new NewArrayOf($t,$exp);} ;
+expre returns [Expression e]: c = constante {$e = $c.text;}
+    | i = id {$e = $i.text;}
+    | ela = exprLA {$e = $ela.text;} 
+    | f = func {$e = $f.text;}
+    | tab = accesTab {$e = $tab.text;}
+    | 'new array of' t = type '[' exp = expre ']' {$e=new NewArrayOf($t.text,$exp.text);} ;
 
-instruct:   (id | accesTab) ':=' expr (';' instruct)?
-    | 'if' expr 'then' instruct (';' instruct)? 'else' instruct (';' instruct)?//ça ne dois pas etre des expressions ici.
-    | 'while' expr 'do' instruct (';' instruct)?
+instruct:   (id | accesTab) ':=' expre (';' instruct)?
+    | 'if' expre 'then' instruct (';' instruct)? 'else' instruct (';' instruct)?//ça ne dois pas etre des expressions ici.
+    | 'while' expre 'do' instruct (';' instruct)?
     | 'skip' (';' instruct)?
     | func (';' instruct)?;
 
 accesTab returns [AccesTab at]: (
-            i = id {$at=new AccesTabID($i);}
-        | f = func {$at=new AccesTabID($f);}
-        ) '[' e = expr {$at.addExpr($e);} ']';
+            i = id {$at=new AccesTabID($i.text);}
+        | f = func {$at=new AccesTabID($f.text);}
+        ) '[' e = expre {$at.addExpr($e.text);} ']';
 
 func returns [Func f]:
-        n = funcName {$f=new Func($n);}
- '(' (expr {$f.AddArg(expr);})* ')';
+        n = funcName {$f=new Func($n.text);}
+ '(' (expre {$f.AddArg(expre);})* ')';
 
 exprLA  returns [ExprLA value] :
         e = or {$value = $e.value;} ;
 
-or returns [ExprLA value]: e = and {$value = $e.value;}
+or returns [ExprLA value]: e = and {$value=$e.value;}
         ('or' e2 = and {$value = new Or($value,$e2.value);})*;
 
 and returns [ExprLA value]: e = ene {$value=$e.value;}
@@ -86,10 +86,10 @@ multiplyExpr  returns [ExprLA value] :
             {$value = new Div($value,  $e2.value);})* ;
 
 atomExpr  returns [ExprLA value] :
-        e = const {$value=$e.value;}
-    | i = id {$value = $i;}
-    | f = func {$value = $f;}
-    | a = accesTab {$value = $a;}
+        e = constante {$value=$e.value;}
+    | i = id {$value = $i.text;}
+    | f = func {$value = $f.text;}
+    | a = accesTab {$value = $a.text;}
     | '(' e1 = or  ')' {$value = $e1.value;}
     | 'not' e2 = atomExpr {$value = new Inv($e2.value);}
     | '-' e2 = atomExpr {$value = new Inv($e2.value);} ;

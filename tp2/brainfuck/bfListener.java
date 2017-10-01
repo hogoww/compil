@@ -37,6 +37,16 @@ public interface bfListener extends ParseTreeListener {
 	 */
 	void exitProgram(bfParser.ProgramContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link bfParser#declarVar}.
+	 * @param ctx the parse tree
+	 */
+	void enterDeclarVar(bfParser.DeclarVarContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link bfParser#declarVar}.
+	 * @param ctx the parse tree
+	 */
+	void exitDeclarVar(bfParser.DeclarVarContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link bfParser#type}.
 	 * @param ctx the parse tree
 	 */
@@ -46,6 +56,16 @@ public interface bfListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitType(bfParser.TypeContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link bfParser#constante}.
+	 * @param ctx the parse tree
+	 */
+	void enterConstante(bfParser.ConstanteContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link bfParser#constante}.
+	 * @param ctx the parse tree
+	 */
+	void exitConstante(bfParser.ConstanteContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link bfParser#funcName}.
 	 * @param ctx the parse tree
@@ -57,15 +77,25 @@ public interface bfListener extends ParseTreeListener {
 	 */
 	void exitFuncName(bfParser.FuncNameContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link bfParser#expr}.
+	 * Enter a parse tree produced by {@link bfParser#id}.
 	 * @param ctx the parse tree
 	 */
-	void enterExpr(bfParser.ExprContext ctx);
+	void enterId(bfParser.IdContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link bfParser#expr}.
+	 * Exit a parse tree produced by {@link bfParser#id}.
 	 * @param ctx the parse tree
 	 */
-	void exitExpr(bfParser.ExprContext ctx);
+	void exitId(bfParser.IdContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link bfParser#expre}.
+	 * @param ctx the parse tree
+	 */
+	void enterExpre(bfParser.ExpreContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link bfParser#expre}.
+	 * @param ctx the parse tree
+	 */
+	void exitExpre(bfParser.ExpreContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link bfParser#instruct}.
 	 * @param ctx the parse tree
@@ -76,6 +106,26 @@ public interface bfListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitInstruct(bfParser.InstructContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link bfParser#accesTab}.
+	 * @param ctx the parse tree
+	 */
+	void enterAccesTab(bfParser.AccesTabContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link bfParser#accesTab}.
+	 * @param ctx the parse tree
+	 */
+	void exitAccesTab(bfParser.AccesTabContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link bfParser#func}.
+	 * @param ctx the parse tree
+	 */
+	void enterFunc(bfParser.FuncContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link bfParser#func}.
+	 * @param ctx the parse tree
+	 */
+	void exitFunc(bfParser.FuncContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link bfParser#exprLA}.
 	 * @param ctx the parse tree
@@ -147,16 +197,6 @@ public interface bfListener extends ParseTreeListener {
 	 */
 	void exitMultiplyExpr(bfParser.MultiplyExprContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link bfParser#func}.
-	 * @param ctx the parse tree
-	 */
-	void enterFunc(bfParser.FuncContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link bfParser#func}.
-	 * @param ctx the parse tree
-	 */
-	void exitFunc(bfParser.FuncContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link bfParser#atomExpr}.
 	 * @param ctx the parse tree
 	 */
@@ -166,14 +206,4 @@ public interface bfListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitAtomExpr(bfParser.AtomExprContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link bfParser#accesTab}.
-	 * @param ctx the parse tree
-	 */
-	void enterAccesTab(bfParser.AccesTabContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link bfParser#accesTab}.
-	 * @param ctx the parse tree
-	 */
-	void exitAccesTab(bfParser.AccesTabContext ctx);
 }
