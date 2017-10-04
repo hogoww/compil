@@ -7,15 +7,15 @@ import org.antlr.v4.runtime.tree.ParseTreeListener;
  */
 public interface bfListener extends ParseTreeListener {
 	/**
-	 * Enter a parse tree produced by {@link bfParser#prog}.
+	 * Enter a parse tree produced by {@link bfParser#program}.
 	 * @param ctx the parse tree
 	 */
-	void enterProg(bfParser.ProgContext ctx);
+	void enterProgram(bfParser.ProgramContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link bfParser#prog}.
+	 * Exit a parse tree produced by {@link bfParser#program}.
 	 * @param ctx the parse tree
 	 */
-	void exitProg(bfParser.ProgContext ctx);
+	void exitProgram(bfParser.ProgramContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link bfParser#funcDef}.
 	 * @param ctx the parse tree
@@ -27,25 +27,15 @@ public interface bfListener extends ParseTreeListener {
 	 */
 	void exitFuncDef(bfParser.FuncDefContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link bfParser#program}.
+	 * Enter a parse tree produced by {@link bfParser#declarationVar}.
 	 * @param ctx the parse tree
 	 */
-	void enterProgram(bfParser.ProgramContext ctx);
+	void enterDeclarationVar(bfParser.DeclarationVarContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link bfParser#program}.
+	 * Exit a parse tree produced by {@link bfParser#declarationVar}.
 	 * @param ctx the parse tree
 	 */
-	void exitProgram(bfParser.ProgramContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link bfParser#declarVar}.
-	 * @param ctx the parse tree
-	 */
-	void enterDeclarVar(bfParser.DeclarVarContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link bfParser#declarVar}.
-	 * @param ctx the parse tree
-	 */
-	void exitDeclarVar(bfParser.DeclarVarContext ctx);
+	void exitDeclarationVar(bfParser.DeclarationVarContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link bfParser#type}.
 	 * @param ctx the parse tree
@@ -126,6 +116,16 @@ public interface bfListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitFunc(bfParser.FuncContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link bfParser#procedure}.
+	 * @param ctx the parse tree
+	 */
+	void enterProcedure(bfParser.ProcedureContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link bfParser#procedure}.
+	 * @param ctx the parse tree
+	 */
+	void exitProcedure(bfParser.ProcedureContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link bfParser#exprLA}.
 	 * @param ctx the parse tree

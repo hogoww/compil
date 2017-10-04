@@ -15,13 +15,13 @@ public class bfBaseListener implements bfListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterProg(bfParser.ProgContext ctx) { }
+	@Override public void enterProgram(bfParser.ProgramContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitProg(bfParser.ProgContext ctx) { }
+	@Override public void exitProgram(bfParser.ProgramContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -39,25 +39,13 @@ public class bfBaseListener implements bfListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterProgram(bfParser.ProgramContext ctx) { }
+	@Override public void enterDeclarationVar(bfParser.DeclarationVarContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitProgram(bfParser.ProgramContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterDeclarVar(bfParser.DeclarVarContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitDeclarVar(bfParser.DeclarVarContext ctx) { }
+	@Override public void exitDeclarationVar(bfParser.DeclarationVarContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -154,6 +142,18 @@ public class bfBaseListener implements bfListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitFunc(bfParser.FuncContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterProcedure(bfParser.ProcedureContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitProcedure(bfParser.ProcedureContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

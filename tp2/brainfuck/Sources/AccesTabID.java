@@ -1,7 +1,6 @@
 class AccesTabID extends AccesTab{
     ID i;
-    AccesTabID(ID i, Expression e){
+    AccesTabID(ID i){
 	this.i=i;
-	this.e=e;
     }
 }

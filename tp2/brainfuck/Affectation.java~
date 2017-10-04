@@ -1,4 +1,4 @@
-abstract class AccesTab extends Expression{
+abstract class Affectation extends Instruction{
     Expression e;
     void addExpression(Expression e){
 	this.e=e;

@@ -1,10 +1,10 @@
 import java.util.ArrayList;
 
-class Func extends Expression{
-    FuncName f;
+class Procedure extends Instruction{
+    FuncName p;
     ArrayList<Expression> arg;
-    Func(FuncName f){
-	 this.f=f;
+    Procedure(FuncName p){
+	 this.p=p;
 	 arg=new ArrayList<Expression>();
     }
     void addArg(Expression e){

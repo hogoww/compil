@@ -1,23 +1,30 @@
 grammar bf;
+//Théo Rogliano
+//Pierre Misse Chanabier
+
 
 //entry rule
-prog: program;
+program returns [Program value] @init{ $value=new Program();} :
+        ('var' (dv = declarationVar {$value.addVar($dv.value);})+)?
+        (f = funcDef {$value.addFunc($f.value);})* 
+        i = instruct {$value.addInstruct($i.value);};
 
-funcDef: id '(' declarationVar* ')' (':' type) declarVar? instruct;
+funcDef returns [FuncDef value]: 
+        i = id {$value=new FuncDef($i.value);}
+        '(' (d = declarationVar {$value.addArg($d.value);} )* ')' 
+        (':' t = type {$value.addType($t.value);}) 
+        ('var' (dv = declarationVar {$value.addVar($dv.value);})+)?
+        in = instruct {$value.addInstruct($in.value);};
 
-program: declarVar? funcDef* instruct;
+declarationVar returns [DeclarationVar value]: i = id ':' t = type {$value = new DeclarationVar($i.value,$t.value);};
 
-declarVar: 'var' declarationVar +;
-
-declarationVar: id ':' type;
-        
 type returns [Type value] :'integer' {$value=new TypeInt();}
     | 'boolean' {$value=new TypeBool();}
-    | 'array of' tempt = type {$value=new TypeArray($tempt);};
+    | 'array of' tempt = type {$value=new TypeArray($tempt.value);};
 
 constante returns [Cte value]: n = NUMBER {$value=new CteInt(Integer.parseInt($n.text));}
-    | c = 'true' {$value=new CteBool(Boolean.parseBoolean($c.text);}
-    | c = 'false' {$value=new CteBool(Boolean.parseBoolean($c.text));} ;
+    | c = 'true' {$value=new CteBool(Boolean.parseBoolean($c.text));}
+    | c = 'false' {$value=new CteBool(Boolean.parseBoolean($c.text));};
 
 funcName returns [FuncName value]:
         'read' {$value=new FuncName(new ID("read"));}
@@ -27,29 +34,40 @@ funcName returns [FuncName value]:
 
 id returns [ID value]: ide = IDENTIFICATEUR {$value=new ID($ide.text);};
 
-expre returns [Expression e]: c = constante {$e = $c.value;}
-    | i = id {$e = $i;}
-    | ela = exprLA {$e = $ela.text;} 
-    | f = func {$e = $f.text;}
-    | tab = accesTab {$e = $tab.text;}
-    | 'new array of' t = type '[' exp = expre ']' {$e=new NewArrayOf($t.text,$exp.text);} ;
+expre returns [Expression value]: c = constante {$value = $c.value;}
+    | i = id {$value = $i.value;}
+    | ela = exprLA {$value = $ela.value;} 
+    | f = func {$value = $f.value;}
+    | tab = accesTab {$value = $tab.value;}
+    | 'new array of' t = type '[' exp = expre ']' {$value=new NewArrayOf($t.value,$exp.value);} ;
 
-instruct  returns [Instruction value]:   (id | accesTab) ':=' expre (';' instruct)?
-    | 'if' expre 'then' instruct (';' instruct)? 'else' instruct (';' instruct)?//ça ne dois pas etre des expressions ici.
-    | 'while' expre 'do' instruct (';' instruct)?
-    | 'skip' (';' instruct)?
-    | func (';' instruct)?;
+instruct returns [Instruction value]:
+        (
+            i = id ':=' e1 = expre {$value=new AffectationVar($i.value,$e1.value);}
+            | at = accesTab ':=' e1 = expre {$value=new AffectationTab($at.value,$e1.value);}
+        | 'if' ex = expre 
+            'then' i1 = instruct 
+            'else' i2 = instruct  {$value=new If($ex.value,$i1.value,$i2.value);}
+        | 'while' ex = expre 'do' in = instruct {$value=new While($ex.value,$in.value);}
+        |'skip' {$value=new Skip();}
+        | p = procedure {$value=$p.value;} 
+        )(';' in = instruct {$value.addInstruction($in.value);})? ;
 
-accesTab returns [AccesTab value]: (//A refaire.
-            i = id {$value=new AccesTabID($i.text);}
-        | f = func {$value=new AccesTabID($f.text);}
-        ) '[' e = expre {$at.addExpr($e.text);} ']';
+accesTab returns [AccesTab value]: (
+            i = id {$value=new AccesTabID($i.value);}
+        | f= func {$value=new AccesTabFunc($f.value);}
+        ) '[' e2 = expre {$value.addExpression($e2.value);} ']';
 
-func returns [Func value]://A refaire
-        n = funcName {$value=new Func($n);}
- '(' (expre {})* ')';
+func returns [Func value]:
+        n = funcName {$value=new Func($n.value);}
+        '(' (e = expre {$value.addArg($e.value);})* ')';
 
-exprLA  returns [ExprLA value] :
+procedure returns [Procedure value]://A refaire
+        n = funcName {$value=new Procedure($n.value);}
+        '(' (e = expre {$value.addArg($e.value);})* ')';
+
+
+exprLA returns [ExprLA value] :
         e = or {$value = $e.value;} ;
 
 or returns [ExprLA value]: e = and {$value=$e.value;}
@@ -87,11 +105,11 @@ multiplyExpr  returns [ExprLA value] :
         | '/' e2 = atomExpr
             {$value = new Div($value,  $e2.value);})* ;
 
-atomExpr  returns [ExprLA value] :
+atomExpr  returns [Expression value] :
         e = constante {$value=$e.value;}
-    | i = id {$value = $i.text;}
-    | f = func {$value = $f.text;}
-    | a = accesTab {$value = $a.text;}
+    | i = id {$value = $i.value;}
+    | f = func {$value = $f.value;}
+    | a = accesTab {$value = $a.value;}
     | '(' e1 = or  ')' {$value = $e1.value;}
     | 'not' e2 = atomExpr {$value = new Inv($e2.value);}
     | '-' e2 = atomExpr {$value = new Inv($e2.value);} ;

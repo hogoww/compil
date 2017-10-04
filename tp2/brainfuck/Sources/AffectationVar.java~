@@ -1,5 +1,0 @@
-class AffectationVar extends Affectation{
-    Affectation(Expression e){
-	this.e=e;
-    }
-}

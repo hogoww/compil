@@ -7,7 +7,7 @@ class Func extends Expression{
 	 this.f=f;
 	 arg=new ArrayList<Expression>();
     }
-    void AddArg(Expression e){
+    void addArg(Expression e){
 	arg.add(e);
     }
 }
