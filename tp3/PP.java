@@ -447,7 +447,7 @@ class PPProcCall extends PPInst {
 	for(PPExpr i : args){
 	    t.add(i.toUPP(locals));
 	}
-	return new UPPProcCall(calle.toUPP(locals),t);
+	return new UPPProcCall(callee.toUPP(locals),t);
     }//toUPP
 
 }//PPProcCall
@@ -552,11 +552,17 @@ class PPProc extends PPDef {
 
     UPPDef toUPP () {
 	//to do
-	ArrayList<Pair<String,Type> t=new ArrayList<UPPExpr>();
-	for(PPExpr i : args){
-	    t.add(i.toUPP(locals));
+	ArrayList<Pair<String,Type>> ta=new ArrayList<Pair<String,Type>>();
+	for(Pair<String,Type> i : args){
+	    ta.add(i.toUPP(locals));
 	}
-	return new UPPProcCall(calle.toUPP(locals),t);
+	
+	ArrayList<Pair<String,Type>> tl=new ArrayList<Pair<String,Type>>();
+	for(Pair<String,Type> i : locals){
+	    tl.add(i.toUPP(locals));
+	}
+	
+	return new UPPProcCall(name.toUPP(locals),ta,tl,code.toUPP(locals));
 	
     }//toUPP
 
