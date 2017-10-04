@@ -11,43 +11,43 @@ declarVar: 'var' declarationVar +;
 
 declarationVar: id ':' type;
         
-type returns [Type e] :'integer' {$e=new TypeInt();}
-    | 'boolean' {$e=new TypeBool();}
-    | 'array of' tempt = type {$e=new TypeArray($type);};
+type returns [Type value] :'integer' {$value=new TypeInt();}
+    | 'boolean' {$value=new TypeBool();}
+    | 'array of' tempt = type {$value=new TypeArray($tempt);};
 
 constante returns [Cte value]: n = NUMBER {$value=new CteInt(Integer.parseInt($n.text));}
-    | c = 'true' {$value=new CteBool(Boolean.parseBoolean($c.line);}
+    | c = 'true' {$value=new CteBool(Boolean.parseBoolean($c.text);}
     | c = 'false' {$value=new CteBool(Boolean.parseBoolean($c.text));} ;
 
-funcName returns [FuncName name]:
-        'read' {$name=new FuncName(new ID("read"));}
-    |'write' {$name=new FuncName(new ID("write"));}
-    | i = id {$name=new FuncName($i.text);};
+funcName returns [FuncName value]:
+        'read' {$value=new FuncName(new ID("read"));}
+    |'write' {$value=new FuncName(new ID("write"));}
+    | i = id {$value=new FuncName($i.value);};
 
 
-id returns [ID i]: ide = IDENTIFICATEUR {$i=new ID($ide.text);};
+id returns [ID value]: ide = IDENTIFICATEUR {$value=new ID($ide.text);};
 
-expre returns [Expression e]: c = constante {$e = $c.text;}
-    | i = id {$e = $i.text;}
+expre returns [Expression e]: c = constante {$e = $c.value;}
+    | i = id {$e = $i;}
     | ela = exprLA {$e = $ela.text;} 
     | f = func {$e = $f.text;}
     | tab = accesTab {$e = $tab.text;}
     | 'new array of' t = type '[' exp = expre ']' {$e=new NewArrayOf($t.text,$exp.text);} ;
 
-instruct:   (id | accesTab) ':=' expre (';' instruct)?
+instruct  returns [Instruction value]:   (id | accesTab) ':=' expre (';' instruct)?
     | 'if' expre 'then' instruct (';' instruct)? 'else' instruct (';' instruct)?//ça ne dois pas etre des expressions ici.
     | 'while' expre 'do' instruct (';' instruct)?
     | 'skip' (';' instruct)?
     | func (';' instruct)?;
 
-accesTab returns [AccesTab at]: (
-            i = id {$at=new AccesTabID($i.text);}
-        | f = func {$at=new AccesTabID($f.text);}
+accesTab returns [AccesTab value]: (//A refaire.
+            i = id {$value=new AccesTabID($i.text);}
+        | f = func {$value=new AccesTabID($f.text);}
         ) '[' e = expre {$at.addExpr($e.text);} ']';
 
-func returns [Func f]:
-        n = funcName {$f=new Func($n.text);}
- '(' (expre {$f.AddArg(expre);})* ')';
+func returns [Func value]://A refaire
+        n = funcName {$value=new Func($n);}
+ '(' (expre {})* ')';
 
 exprLA  returns [ExprLA value] :
         e = or {$value = $e.value;} ;
