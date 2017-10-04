@@ -14,21 +14,4 @@
 	<natures>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 	</natures>
-	<linkedResources>
-		<link>
-			<name>src/PP.java</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/tp3/PP.java</locationURI>
-		</link>
-		<link>
-			<name>src/RTL.java</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/tp3/RTL.java</locationURI>
-		</link>
-		<link>
-			<name>src/UPP.java</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/tp3/UPP.java</locationURI>
-		</link>
-	</linkedResources>
 </projectDescription>
