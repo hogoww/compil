@@ -92,7 +92,7 @@ class PPInv extends PPUnOp {
     }//PPInv
 
     UPPExpr toUPP(ArrayList<String> locals) {
-	return new UPPSub(new UPPCst(0),e.toUPP(locals));
+	return new UPPSub(new UPPCte(0),e.toUPP(locals));
     }//toUPP
 
 }//PPInv
@@ -329,7 +329,7 @@ class PPArrayGet extends PPExpr {
     }//PPArrayGet
 
     UPPExpr toUPP(ArrayList<String> locals) {
-	return new UPPLoad(arr.toUPP(locals)+new UPPCte(4)*index.toUPP(locals));
+	return new UPPLoad(new UPPAdd(arr.toUPP(locals),new UPPMul (new UPPCte(4), index.toUPP(locals))));
     }//toUPP
 
 }//PPArrayGet
@@ -392,7 +392,7 @@ class PPArraySet extends PPInst {
     }//PPArraySet
 
     UPPInst toUPP(ArrayList<String> locals) {
-	return new UPPStore(arr.toUPP(locals)+new UPPCte(4)*index.toUPP(locals),val.toUPP(locals));
+	return new UPPStore((new UPPAdd(arr.toUPP(locals),new UPPMul (new UPPCte(4), index.toUPP(locals)))),val.toUPP(locals));
     }//toUPP
 
 }//PPArraySet
@@ -447,7 +447,7 @@ class PPProcCall extends PPInst {
 	for(PPExpr i : args){
 	    t.add(i.toUPP(locals));
 	}
-	return new UPPProcCall(callee.toUPP(locals),t);
+	return new UPPProcCall(callee,t);
     }//toUPP
 
 }//PPProcCall
@@ -551,18 +551,23 @@ class PPProc extends PPDef {
     }//PPProc
 
     UPPDef toUPP () {
-	//to do
-	ArrayList<Pair<String,Type>> ta=new ArrayList<Pair<String,Type>>();
-	for(Pair<String,Type> i : args){
-	    ta.add(i.toUPP(locals));
-	}
+    	ArrayList<String> nargs = new ArrayList<String>();
+        ArrayList<String> nlocals = new ArrayList<String>();
+        ArrayList<String> nall = new ArrayList<String>();
+        
+        for (Pair<String,Type> e : args) {
+            nargs.add(e.left);
+            nall.add(e.left);
+        }//for
+        nlocals.add(name);
+        nall.add(name);
+        for (Pair<String,Type> e : locals) {
+            nlocals.add(e.left);
+            nall.add(e.left);
+        }//for
+    	
 	
-	ArrayList<Pair<String,Type>> tl=new ArrayList<Pair<String,Type>>();
-	for(Pair<String,Type> i : locals){
-	    tl.add(i.toUPP(locals));
-	}
-	
-	return new UPPProcCall(name.toUPP(locals),ta,tl,code.toUPP(locals));
+	return new UPPProc(name,nargs,nlocals,code.toUPP(nall));
 	
     }//toUPP
 
