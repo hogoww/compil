@@ -538,6 +538,10 @@ class UPPSeq extends UPPInst {
 
     RTLInst toRTL (ArrayList<Pair<String,PRegister>> locals,
                    ArrayList<String> globals, RTLInst succ) {
+    	
+    	RTLInst ni2 = i2.toRTL(locals,globals,succ);
+    	RTLInst ni1 = i1.toRTL(locals,globals,ni2);
+    	return ni1;
         //To do
     }//toRTL        
 
