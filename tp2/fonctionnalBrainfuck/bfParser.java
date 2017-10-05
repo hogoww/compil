@@ -1087,7 +1087,7 @@ public class bfParser extends Parser {
 	}
 
 	public static class ExprLAContext extends ParserRuleContext {
-		public ExprLA value;
+		public Expression value;
 		public OrContext e;
 		public OrContext or() {
 			return getRuleContext(OrContext.class,0);
@@ -1129,7 +1129,7 @@ public class bfParser extends Parser {
 	}
 
 	public static class OrContext extends ParserRuleContext {
-		public ExprLA value;
+		public Expression value;
 		public AndContext e;
 		public AndContext e2;
 		public List<AndContext> and() {
@@ -1193,7 +1193,7 @@ public class bfParser extends Parser {
 	}
 
 	public static class AndContext extends ParserRuleContext {
-		public ExprLA value;
+		public Expression value;
 		public EneContext e;
 		public EneContext e2;
 		public List<EneContext> ene() {
@@ -1257,7 +1257,7 @@ public class bfParser extends Parser {
 	}
 
 	public static class EneContext extends ParserRuleContext {
-		public ExprLA value;
+		public Expression value;
 		public LtgtContext e;
 		public LtgtContext e2;
 		public List<LtgtContext> ltgt() {
@@ -1338,7 +1338,7 @@ public class bfParser extends Parser {
 	}
 
 	public static class LtgtContext extends ParserRuleContext {
-		public ExprLA value;
+		public Expression value;
 		public AdditionExprContext e1;
 		public AdditionExprContext e2;
 		public List<AdditionExprContext> additionExpr() {
@@ -1437,7 +1437,7 @@ public class bfParser extends Parser {
 	}
 
 	public static class AdditionExprContext extends ParserRuleContext {
-		public ExprLA value;
+		public Expression value;
 		public MultiplyExprContext e1;
 		public MultiplyExprContext e2;
 		public List<MultiplyExprContext> multiplyExpr() {
@@ -1520,7 +1520,7 @@ public class bfParser extends Parser {
 	}
 
 	public static class MultiplyExprContext extends ParserRuleContext {
-		public ExprLA value;
+		public Expression value;
 		public AtomExprContext e1;
 		public AtomExprContext e2;
 		public List<AtomExprContext> atomExpr() {
@@ -1698,7 +1698,7 @@ public class bfParser extends Parser {
 				match(T__34);
 				setState(336);
 				((AtomExprContext)_localctx).e2 = atomExpr();
-				((AtomExprContext)_localctx).value =  new Inv(((AtomExprContext)_localctx).e2.value);
+				((AtomExprContext)_localctx).value =  new Not(((AtomExprContext)_localctx).e2.value);
 				}
 				break;
 			case 7:
