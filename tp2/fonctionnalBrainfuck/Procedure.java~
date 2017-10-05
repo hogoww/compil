@@ -1,0 +1,13 @@
+import java.util.ArrayList;
+
+class Procedure extends Instruction{
+    ProcedureName f;
+    ArrayList<Expression> arg;
+    Procedure(ProcedureName f){
+	 this.f=f;
+	 arg=new ArrayList<Expression>();
+    }
+    void addArg(Expression e){
+	arg.add(e);
+    }
+}
