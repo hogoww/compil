@@ -1,0 +1,24 @@
+import java.util.set;//une hashmap serais plus opti, mais flemme.
+
+class NodeColoration {
+    private static bool inserted=false;//Pour une insertion bilaterale simple.
+    private String nom;
+    private bool isActive;
+    private bool isSplit;
+    private int couleur;
+    private Set<NodeColoration> voisins;
+    
+    NodeColoration(String nom){
+	this.nom=nom;
+	voisins=new Set<NodeColoration>();
+    }
+    void Active(bool b){
+	this.isActive=b;
+    }
+    bool Active(){
+	return this.isActive;
+    }
+
+    
+    
+}
