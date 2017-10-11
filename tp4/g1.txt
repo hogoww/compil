@@ -1,0 +1,15 @@
+6
+v
+y
+x
+u
+t
+z
+7
+v z
+v t
+v x
+u x
+u y
+y x
+y t
