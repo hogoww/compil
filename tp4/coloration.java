@@ -1,3 +1,6 @@
+//Théo Rogliano
+//Pierre Misse-Chanabier
+
 import java.util.Map;
 import java.util.HashMap;
 import java.util.ArrayList;
@@ -11,7 +14,7 @@ class coloration{
    public static void main (String[] args){
        Graph g=new Graph();
        g.remplirDepuisFichier("g1.txt");
-       int nbCouleur=2;
+       int nbCouleur=3;
        Coloration c=new Coloration(g,nbCouleur);
        c.colorThatGraph();
        g.printColoByNode();
@@ -26,8 +29,24 @@ class Coloration{
 	this.nbCouleur=k;
     }
 
-    
     public void colorThatGraph(){
+	colorThatGraphAux();
+	for(NodeColoration n : g){
+	    if(n.getIsSplit()){
+		ReactivateAllEdges(n);//On remet les aretes avec les noeuds actifs	    
+		colorThatNode(n);
+		if(n.getCouleur()==-1){
+		    DeactivateAllEdges(n);//On enleve toute les aretes du noeud.
+		}
+		else{
+		    n.setIsActive(true);
+		    n.setIsSplit(false);
+		}
+	    }
+	}
+    }
+    
+public void colorThatGraphAux(){
 	
 	NodeColoration n=chercheTrivial();
 	if(n==null){
@@ -42,14 +61,36 @@ class Coloration{
 	
 	n.setIsActive(false);//On retire le noeud du graph
 	DeactivateAllEdges(n);//On enleve toute les aretes du noeud.
-	colorThatGraph();//On continue à descendre
-	ReactivateAllEdges(n);//On remet les aretes avec les noeuds actifs
-	colorThatNode(n);
-	n.setIsActive(true);//n le remet
-
-	if(n.getCouleur()!=-1){
-	    n.setIsSplit(false);
+	colorThatGraphAux();//On continue à descendre
+	if(!n.getIsSplit()){
+	    ReactivateAllEdges(n);//On remet les aretes avec les noeuds actifs	    
+	    colorThatNode(n);
+	    n.setIsActive(true);//n le remte	    
 	}
+    }
+
+    private void colorThatNode(NodeColoration n){
+	ArrayList<Boolean> couleurVoisins;
+	couleurVoisins=new ArrayList<Boolean>(this.nbCouleur);
+	for(int i=0;i<nbCouleur;++i){
+	    couleurVoisins.add(new Boolean(Boolean.FALSE));
+	}
+
+	for(Map.Entry<NodeColoration,Boolean> nc : n.getVoisins().entrySet()){//On récupère la couleur des voisins
+	    if(nc.getKey().getIsActive()){//à ce stade, seuls les noeuds actifs ont une couleur
+		if(nc.getValue().booleanValue()){//Si l'arrète est active
+		    couleurVoisins.set(nc.getKey().getCouleur(),true);
+		}
+	    }
+	}
+	
+	for(int i=0;i<this.nbCouleur;++i){//On assigne la première couleur disponible
+	    if(!couleurVoisins.get(i).booleanValue()){
+		n.setCouleur(i);
+	        break;
+	    }
+	}
+	//else on laisse la couleur à -1, pour les splited
     }
 
     private NodeColoration chercheMaxDegre(){
@@ -95,31 +136,6 @@ class Coloration{
 	}
 	return null;
     
-}
-    private void colorThatNode(NodeColoration n){
-	ArrayList<Boolean> couleurVoisins;
-	couleurVoisins=new ArrayList<Boolean>(this.nbCouleur);
-	for(int i=0;i<nbCouleur;++i){
-	    couleurVoisins.add(new Boolean(Boolean.FALSE));
-	}
-
-	for(Map.Entry<NodeColoration,Boolean> nc : n.getVoisins().entrySet()){//On récupère la couleur des voisins
-	    if(nc.getKey().getIsActive()){//à ce stade, seuls les noeuds actifs ont une couleur
-		if(nc.getValue().booleanValue()){//Si l'arrète est active
-		    //System.out.println(nc);
-		    couleurVoisins.set(nc.getKey().getCouleur(),true);
-		}
-	    }
-	}
-
-	for(int i=0;i<this.nbCouleur;++i){//On assigne la première couleur disponible
-	    System.out.println(couleurVoisins);
-	    if(!couleurVoisins.get(i).booleanValue()){
-		n.setCouleur(i);
-	        break;
-	    }
-	}
-	//else on laisse la couleur à -1, pour les splited
     }
     
 }
