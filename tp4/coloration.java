@@ -33,10 +33,10 @@ class Coloration{
 	colorThatGraphAux();
 	for(NodeColoration n : g){
 	    if(n.getIsSplit()){
-		ReactivateAllEdges(n);//On remet les aretes avec les noeuds actifs	    
-		colorThatNode(n);
+		n.ReactivateAllEdges();//On remet les aretes
+		colorThatNode(n);//On tente une coloration du sommet split en cours
 		if(n.getCouleur()==-1){
-		    DeactivateAllEdges(n);//On enleve toute les aretes du noeud.
+		    n.DeactivateAllEdges();//On enleve toute les aretes du noeud.
 		}
 		else{
 		    n.setIsActive(true);
@@ -60,10 +60,10 @@ public void colorThatGraphAux(){
 	}
 	
 	n.setIsActive(false);//On retire le noeud du graph
-	DeactivateAllEdges(n);//On enleve toute les aretes du noeud.
+	n.DeactivateAllEdges();//On enleve toute les aretes du noeud.
 	colorThatGraphAux();//On continue à descendre
 	if(!n.getIsSplit()){
-	    ReactivateAllEdges(n);//On remet les aretes avec les noeuds actifs	    
+	    n.ReactivateAllEdges();//On remet les aretes avec les noeuds actifs	    
 	    colorThatNode(n);
 	    n.setIsActive(true);//n le remte	    
 	}
@@ -107,24 +107,7 @@ public void colorThatGraphAux(){
 	    return null;//arrive si il n'y a plus de noeud dans le graph   
 	}
     }
-    private void DeactivateAllEdges(NodeColoration n){
-	for(Map.Entry<NodeColoration,Boolean> nc : n.getVoisins().entrySet()){
-	    if(nc.getKey().getIsActive()){
-		n.removeMe(nc.getKey());
-		nc.getKey().removeMe(n);
-	    }
-	    //else inutile
-	}
-    }
-    
-    private void ReactivateAllEdges(NodeColoration n){
-	for(Map.Entry<NodeColoration,Boolean> nc : n.getVoisins().entrySet()){
-	    if(nc.getKey().getIsActive()){
-		n.activeMe(nc.getKey());
-		nc.getKey().activeMe(n);
-	    }
-	}
-    }
+
     
     private NodeColoration chercheTrivial(){
 	//Si retour r>=0 coloration trivial pour le noeud r;
@@ -213,6 +196,27 @@ class NodeColoration implements Comparable<NodeColoration> {
     public HashMap<NodeColoration,Boolean> getVoisins(){
 	return this.voisins;
     }
+
+    public void DeactivateAllEdges(){
+	for(Map.Entry<NodeColoration,Boolean> nc : voisins.entrySet()){
+	    if(nc.getKey().getIsActive()){
+		removeMe(nc.getKey());
+		nc.getKey().removeMe(this);
+	    }
+	    //else inutile
+	}
+    }
+    
+    public void ReactivateAllEdges(){
+	for(Map.Entry<NodeColoration,Boolean> nc : voisins.entrySet()){
+	    if(nc.getKey().getIsActive()){
+		this.activeMe(nc.getKey());
+		nc.getKey().activeMe(this);
+	    }
+	}
+    }
+
+
     public int getDegre(){//Ergo nombre d'arrete à 1
 	int counter=0;
 	for(Boolean b : voisins.values()){
@@ -222,6 +226,7 @@ class NodeColoration implements Comparable<NodeColoration> {
 	}
 	return counter;
     }
+
     public void addVoisins(NodeColoration n){
 	voisins.put(n,false);
 	if(NodeColoration.inserted){
