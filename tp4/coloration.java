@@ -13,8 +13,8 @@ import java.io.FileNotFoundException;
 class coloration{
    public static void main (String[] args){
        Graph g=new Graph();
-       g.remplirDepuisFichier("g1.txt");
-       int nbCouleur=3;
+       g.remplirDepuisFichier("g2.txt");
+       int nbCouleur=2;
        Coloration c=new Coloration(g,nbCouleur);
        c.colorThatGraph();
        g.printColoByNode();
@@ -32,15 +32,15 @@ class Coloration{
     public void colorThatGraph(){
 	colorThatGraphAux();
 	for(NodeColoration n : g){
-	    if(n.getIsSplit()){
+	    if(n.getIsSpill()){
 		n.ReactivateAllEdges();//On remet les aretes
-		colorThatNode(n);//On tente une coloration du sommet split en cours
+		colorThatNode(n);//On tente une coloration du sommet spill en cours
 		if(n.getCouleur()==-1){
 		    n.DeactivateAllEdges();//On enleve toute les aretes du noeud.
 		}
 		else{
 		    n.setIsActive(true);
-		    n.setIsSplit(false);
+		    n.setIsSpill(false);
 		}
 	    }
 	}
@@ -55,14 +55,14 @@ public void colorThatGraphAux(){
 		return;
 	    }
 	    else{
-		n.setIsSplit(true);
+		n.setIsSpill(true);
 	    }
 	}
 	
 	n.setIsActive(false);//On retire le noeud du graph
 	n.DeactivateAllEdges();//On enleve toute les aretes du noeud.
 	colorThatGraphAux();//On continue à descendre
-	if(!n.getIsSplit()){
+	if(!n.getIsSpill()){
 	    n.ReactivateAllEdges();//On remet les aretes avec les noeuds actifs	    
 	    colorThatNode(n);
 	    n.setIsActive(true);//n le remte	    
@@ -90,7 +90,7 @@ public void colorThatGraphAux(){
 	        break;
 	    }
 	}
-	//else on laisse la couleur à -1, pour les splited
+	//else on laisse la couleur à -1, pour les spilled
     }
 
     private NodeColoration chercheMaxDegre(){
@@ -155,7 +155,7 @@ class Graph extends ArrayList<NodeColoration>{
 	        int i2=getIndexNodeByName(Line.charAt(2));
 		
 		if((i1==-1) || (i2==-1)){
-		    System.out.println("Un sommet n'existait pas lors du parsing des arrètes du fichier");
+		    System.err.println("Un sommet n'existait pas lors du parsing des arètes du fichier");
 		    throw new FileNotFoundException();
 		}
 		
@@ -166,7 +166,7 @@ class Graph extends ArrayList<NodeColoration>{
 	s.close();
 	}
 	catch(FileNotFoundException e){
-	    System.out.println("Le format du fichier décrivant le graph est incorrect");
+	    System.err.println("Le format du fichier décrivant le graph est incorrect");
 	}
 
     }
@@ -182,14 +182,14 @@ class NodeColoration implements Comparable<NodeColoration> {
     private static boolean inserted=false;//Pour une insertion bilaterale simple.
     private char nom;//On pourrait utiliser des integers, c'est pour faire jolie.
     private boolean isActive;
-    private boolean isSplit;
+    private boolean isSpill;
     private int couleur;
     private HashMap<NodeColoration,Boolean> voisins;
     
     NodeColoration(char nom){
 	this.nom=nom;
 	this.isActive=true;
-	this.isSplit=false;
+	this.isSpill=false;
 	this.couleur=-1;//N'as pas de couleur;
 	voisins=new HashMap<NodeColoration,Boolean>();
     }
@@ -243,11 +243,11 @@ class NodeColoration implements Comparable<NodeColoration> {
     public boolean getIsActive(){
 	return this.isActive;
     }
-    public void setIsSplit(boolean b){
-	this.isSplit=b;
+    public void setIsSpill(boolean b){
+	this.isSpill=b;
     }
-    public boolean getIsSplit(){
-	return this.isSplit;
+    public boolean getIsSpill(){
+	return this.isSpill;
     }
     public void setCouleur(int c){
 	this.couleur=c;
@@ -270,6 +270,6 @@ class NodeColoration implements Comparable<NodeColoration> {
     }
     @Override
 	public String toString(){
-	return nom+" "+isActive+" "+isSplit+" "+couleur;
+	return nom+" "+isActive+" "+isSpill+" "+couleur;
     }
 }
