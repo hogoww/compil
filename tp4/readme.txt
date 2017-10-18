@@ -13,3 +13,5 @@ b
 
 1
 a b
+
+0 //correspond aux nombres d'arêtes de preference
