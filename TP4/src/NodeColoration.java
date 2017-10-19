@@ -69,7 +69,7 @@ public class NodeColoration {
 	}
 
 	public void addVoisins(NodeColoration n){
-		voisins.put(n,false);
+		voisins.put(n,true);
 		if(NodeColoration.inserted){
 			NodeColoration.inserted=false;//Done
 		}
@@ -80,13 +80,13 @@ public class NodeColoration {
 	}    
 	
 	public void addPrefs(NodeColoration n){
-		prefs.put(n,false);
+		prefs.put(n,true);
 		if(NodeColoration.inserted){
 			NodeColoration.inserted=false;//Done
 		}
 		else{	    
 			NodeColoration.inserted=true;
-			n.addVoisins(this);//On s'ajoute également chez le voisins.
+			n.addPrefs(this);//On s'ajoute également chez le voisins.
 		}
 	}  
 	

@@ -74,13 +74,16 @@ public class Coloration {
 			}
 			
 			for(Map.Entry<NodeColoration,Boolean> nc : n.getPrefs().entrySet()){
-				if(nc.getKey().getIsActive()){
+				if(nc.getKey().getCouleur()!=-1){
 					//ici pas besoin de savoir si l'arete est active
 						couleurPrefs.set(nc.getKey().getCouleur(),true);
 				}
 			}
 			
-			for(int i=0;i<this.nbCouleur;++i){//On regarde si il existe une couleur préférée disponible auquel cas on la prends 
+			System.err.println(couleurPrefs);
+			System.err.println(couleurVoisins);
+			
+			for(int i=0;i<this.nbCouleur;++i){//On regarde s'il existe une couleur préférée disponible auquel cas on la prends 
 				if(couleurPrefs.get(i).booleanValue() && !couleurVoisins.get(i).booleanValue()){
 					n.setCouleur(i);
 					hasColor=true;

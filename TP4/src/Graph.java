@@ -61,7 +61,7 @@ public class Graph extends ArrayList<NodeColoration>{
 				NodeColoration n1=this.get(i1);
 				NodeColoration n2=this.get(i2);
 				n1.setHasPref(true);
-				//n2.setHasPref(true);
+				n2.setHasPref(true);
 				n1.addPrefs(n2);
 				//n2.addPrefs(n1);
 			}
