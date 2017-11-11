@@ -1,33 +1,47 @@
-//Théo Rogliano
-//Pierre Misse-Chanabier
+//Rogliano Théo
+//Misse-chanabier Pierre
 
-import java.util.Map;
-import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.Collections;
-import static java.lang.System.out;
-import java.util.Scanner;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Scanner;
 
-class coloration{
-   public static void main (String[] args){
-       Graph g=new Graph();
-       g.remplirDepuisFichier("g2.txt");
-       int nbCouleur=2;
-       Coloration c=new Coloration(g,nbCouleur);
-       c.colorThatGraph();
-       g.printColoByNode();
-   }
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
+
+
+
+public class coloration {
+	   public static void main (String[] args){
+	       if(args.length!=1){
+		   System.err.println("\n\nUsage : java Coloration Nombre_Couleur \n\n");
+		   System.exit(1);
+	       }
+	       int nbCouleur=-1;
+	       Graph g=new Graph();
+	       g.remplirDepuisFichier("g1.txt");
+	       try{
+		   nbCouleur=Integer.parseInt(args[0]);
+	       }
+	       catch (NumberFormatException e){
+		   System.err.println("Argument" + args[0] + " must be an integer.");
+		   System.exit(1);
+	       }
+	       Coloration c=new Coloration(g,nbCouleur);
+	       c.colorThatGraph();
+	       g.printColoByNode();
+	   }
 }
 
-class Coloration{
-    private Graph g;
-    private int nbCouleur;
-    Coloration(Graph g,int k){
-	this.g=g;
-	this.nbCouleur=k;
-    }
+class Coloration {
+	private Graph g;
+	private int nbCouleur;
+
+	Coloration(Graph g,int k){
+		this.g=g;
+		this.nbCouleur=k;
+	}
 
     public void colorThatGraph(){
 	colorThatGraphAux();
@@ -45,9 +59,9 @@ class Coloration{
 	    }
 	}
     }
-    
-public void colorThatGraphAux(){
-	
+
+    public void colorThatGraphAux(){
+
 	NodeColoration n=chercheTrivial();
 	if(n==null){
 	    n=chercheMaxDegre();
@@ -58,218 +72,309 @@ public void colorThatGraphAux(){
 		n.setIsSpill(true);
 	    }
 	}
-	
+
 	n.setIsActive(false);//On retire le noeud du graph
 	n.DeactivateAllEdges();//On enleve toute les aretes du noeud.
 	colorThatGraphAux();//On continue à descendre
 	if(!n.getIsSpill()){
 	    n.ReactivateAllEdges();//On remet les aretes avec les noeuds actifs	    
 	    colorThatNode(n);
-	    n.setIsActive(true);//n le remte	    
+	    n.setIsActive(true);//on le remet	    
 	}
     }
 
-private void colorThatNode(NodeColoration n){
-	ArrayList<Boolean> couleurVoisins;
-	couleurVoisins=new ArrayList<Boolean>(this.nbCouleur);
-	for(int i=0;i<nbCouleur;++i){
-	    couleurVoisins.add(new Boolean(Boolean.FALSE));
-	}
-
-	for(Map.Entry<NodeColoration,Boolean> nc : n.getVoisins().entrySet()){//On récupère la couleur des voisins
-	    if(nc.getKey().getIsActive()){//à ce stade, seuls les noeuds actifs ont une couleur
-		if(nc.getValue().booleanValue()){//Si l'arrète est active
-		    couleurVoisins.set(nc.getKey().getCouleur(),true);
+	private void colorThatNode(NodeColoration n){
+		ArrayList<Boolean> couleurVoisins;
+		couleurVoisins=new ArrayList<Boolean>(this.nbCouleur);
+		for(int i=0;i<nbCouleur;++i){
+			couleurVoisins.add(new Boolean(Boolean.FALSE));
 		}
-	    }
-	}
-	
-	for(int i=0;i<this.nbCouleur;++i){//On assigne la première couleur disponible
-	    if(!couleurVoisins.get(i).booleanValue()){
-		n.setCouleur(i);
-	        break;
-	    }
-	}
-	//else on laisse la couleur à -1, pour les spilled
-    }
 
-private NodeColoration chercheMaxDegre(){
-	NodeColoration max=g.get(0);//Pas forcement actif, donc on vérifie à la fin.
-	for(NodeColoration n : g){
-	    if(n.getIsActive() && (n.getDegre()>max.getDegre())){
-		max=n;
-	    }
-	}
-	if(max.getIsActive()){
-	    return max;
-	}
-	else{
-	    return null;//arrive si il n'y a plus de noeud dans le graph   
-	}
-    }
+		for(Map.Entry<NodeColoration,Boolean> nc : n.getVoisins().entrySet()){//On récupère la couleur des voisins
+			if(nc.getKey().getIsActive()){//à ce stade, seuls les noeuds actifs ont une couleur
+				if(nc.getValue().booleanValue()){//Si l'arrète est active
+					couleurVoisins.set(nc.getKey().getCouleur(),true);
+				}
+			}
+		}
+		Boolean hasColor=false;
+		if(n.isHasPref()) {//si le noeud a envie d'avoir la même couleur qu'un ami	
+			ArrayList<Boolean> couleurPrefs;
+			couleurPrefs=new ArrayList<Boolean>(this.nbCouleur);//Maintenant on regarde si une couleur parmi les preferences est disponible
+			
+			for(int i=0;i<nbCouleur;++i){
+				couleurPrefs.add(new Boolean(Boolean.FALSE));
+			}
+			
+			for(Map.Entry<NodeColoration,Boolean> nc : n.getPrefs().entrySet()){
+				if(nc.getKey().getCouleur()!=-1){
+					//ici pas besoin de savoir si l'arete est active
+						couleurPrefs.set(nc.getKey().getCouleur(),true);
+				}
+			}
+			
+			
+			for(int i=0;i<this.nbCouleur;++i){//On regarde s'il existe une couleur préférée disponible auquel cas on la prends 
+				if(couleurPrefs.get(i).booleanValue() && !couleurVoisins.get(i).booleanValue()){
+					n.setCouleur(i);
+					hasColor=true;
+					break;		
+				}
+			}
+		}
+		
+		if(!hasColor) {
+			for(int i=0;i<this.nbCouleur;++i){//On assigne la première couleur disponible 
+				if(!couleurVoisins.get(i).booleanValue()){
+					n.setCouleur(i);
+					break;
+				}
+				//else on laisse la couleur à -1, pour les spilled
+			}
+		}
 
-    
-private NodeColoration chercheTrivial(){
-	//Si retour r>=0 coloration trivial pour le noeud r;
-	//Si retour r<0 coloration non triviale
-	for(NodeColoration n : g){
-	    if(n.getIsActive() && (n.getDegre()<this.nbCouleur)){
-		return n;
-	    }
 	}
-	return null;
-    
-    }
-    
+
+
+	private NodeColoration chercheMaxDegre(){
+		NodeColoration max=g.get(0);//Pas forcement actif, donc on vérifie à la fin.
+		for(NodeColoration n : g){
+			if(n.getIsActive() && (n.getDegre()>max.getDegre())){
+				max=n;
+			}
+		}
+		if(max.getIsActive()){
+			return max;
+		}
+		else{
+			return null;//arrive s'il n'y a plus de noeuds dans le graph   
+		}
+	}
+
+
+	private NodeColoration chercheTrivial(){
+		//Si retour r>=0 coloration trivial pour le noeud r;
+		//Si retour r<0 coloration non triviale
+		for(NodeColoration n : g){
+			if(n.getIsActive() && (n.getDegre()<this.nbCouleur)){
+				return n;
+			}
+		}
+		return null;
+
+	}
 }
 
 
 
 class Graph extends ArrayList<NodeColoration>{
-    Graph(){
-	super();	
-    }
-    private int getIndexNodeByName(char s){
-	for(int i=0;i<this.size();i++){
-	    if(this.get(i).getNom()==s){
-		return i;
-	    }
+	
+	Graph(){
+		super();	
 	}
-	return -1;
-    }
-
-    public void remplirDepuisFichier(String nomFichier){
-	int nbArrete;
-	int nbSommet;
-	try{
-	    Scanner s=new Scanner(new File(nomFichier));
-	    nbSommet=Integer.parseInt(s.nextLine());
-	    for(int i=0;i<nbSommet;++i){
-		this.add(new NodeColoration(s.nextLine().charAt(0)));
-	    }
-	    nbArrete=Integer.parseInt(s.nextLine());
-	    for(int i=0;i<nbSommet;++i){
-		String Line=s.nextLine();//Flemme de parser mieux que un char max par node
-		
-	        int i1=getIndexNodeByName(Line.charAt(0));		
-	        int i2=getIndexNodeByName(Line.charAt(2));
-		
-		if((i1==-1) || (i2==-1)){
-		    System.err.println("Un sommet n'existait pas lors du parsing des arètes du fichier");
-		    throw new FileNotFoundException();
+	
+	private int getIndexNodeByName(char s){
+		for(int i=0;i<this.size();i++){
+			if(this.get(i).getNom()==s){
+				return i;
+			}
 		}
-		
-		NodeColoration n1=this.get(i1);
-		NodeColoration n2=this.get(i2);
-		n1.addVoisins(n2);
-	    }
-	s.close();
-	}
-	catch(FileNotFoundException e){
-	    System.err.println("Le format du fichier décrivant le graph est incorrect");
+		return -1;
 	}
 
-    }
+	public void remplirDepuisFichier(String nomFichier){
+		int nbArrete;
+		int nbSommet;
+		int nbAretePrefs;
+		try{
+			Scanner s=new Scanner(new File(nomFichier));
+			nbSommet=Integer.parseInt(s.nextLine());
+			for(int i=0;i<nbSommet;++i){
+				this.add(new NodeColoration(s.nextLine().charAt(0)));
+			}
+			
+			nbArrete=Integer.parseInt(s.nextLine());
+			for(int i=0;i<nbArrete;++i){
+				String Line=s.nextLine();//Flemme de parser mieux que un char max par node 
 
-    public void printColoByNode(){
-	for(NodeColoration n : this){
-	    System.out.println(n.getNom()+" "+n.getCouleur());
+				int i1=getIndexNodeByName(Line.charAt(0));		
+				int i2=getIndexNodeByName(Line.charAt(2));
+
+				if((i1==-1) || (i2==-1)){
+					System.err.println("Un sommet n'existait pas lors du parsing des arètes du fichier");
+					throw new FileNotFoundException();
+				}
+
+				NodeColoration n1=this.get(i1);
+				NodeColoration n2=this.get(i2);
+				n1.addVoisins(n2);
+			}
+			
+			nbAretePrefs=Integer.parseInt(s.nextLine()); //Ce sont aussi des aretes mais qui ont une preference
+			for(int i=0;i<nbAretePrefs;++i){
+				String Line=s.nextLine();
+
+				int i1=getIndexNodeByName(Line.charAt(0));		
+				int i2=getIndexNodeByName(Line.charAt(2));
+
+				if((i1==-1) || (i2==-1)){
+					System.err.println("Un sommet n'existait pas lors du parsing des arètes du fichier");
+					throw new FileNotFoundException();
+				}
+
+				NodeColoration n1=this.get(i1);
+				NodeColoration n2=this.get(i2);
+				n1.setHasPref(true);
+				n2.setHasPref(true);
+				n1.addPrefs(n2);
+				//n2.addPrefs(n1);
+			}
+			
+			
+			s.close();
+		}
+		catch(FileNotFoundException e){
+			System.err.println("Le format du fichier décrivant le graph est incorrect");
+		}
+
 	}
-    }   
+
+	public void printColoByNode(){
+		for(NodeColoration n : this){
+			System.out.println(n.getNom()+" "+n.getCouleur());
+		}
+	}   
 }
 
-class NodeColoration implements Comparable<NodeColoration> {
-    private static boolean inserted=false;//Pour une insertion bilaterale simple.
-    private char nom;//On pourrait utiliser des integers, c'est pour faire jolie.
-    private boolean isActive;
-    private boolean isSpill;
-    private int couleur;
-    private HashMap<NodeColoration,Boolean> voisins;
-    
-    NodeColoration(char nom){
-	this.nom=nom;
-	this.isActive=true;
-	this.isSpill=false;
-	this.couleur=-1;//N'as pas de couleur;
-	voisins=new HashMap<NodeColoration,Boolean>();
-    }
-    public HashMap<NodeColoration,Boolean> getVoisins(){
-	return this.voisins;
-    }
+class NodeColoration {
+	private static boolean inserted=false;//Pour une insertion bilaterale simple.
+	private char nom;//On pourrait utiliser des integers, c'est pour faire jolie.
+	private boolean isActive;
+	private boolean isSpill;
+	private boolean hasPref = false;
+	private int couleur;
+	private HashMap<NodeColoration,Boolean> prefs;
+	private HashMap<NodeColoration,Boolean> voisins;
 
-    public void DeactivateAllEdges(){
-	for(Map.Entry<NodeColoration,Boolean> nc : voisins.entrySet()){
-	    if(nc.getKey().getIsActive()){
-		removeMe(nc.getKey());
-		nc.getKey().removeMe(this);
-	    }
-	    //else inutile
+	NodeColoration(char nom){
+		this.nom=nom;
+		this.isActive=true;
+		this.isSpill=false;
+		this.couleur=-1;//N'as pas de couleur;
+		voisins=new HashMap<NodeColoration,Boolean>();
+		prefs = new HashMap<NodeColoration,Boolean>();
+	}  
+
+	NodeColoration(char nom, boolean pref){
+		this.nom=nom;
+		this.isActive=true;
+		this.isSpill=false;
+		hasPref=pref;
+		this.couleur=-1;//N'as pas de couleur;
+		voisins=new HashMap<NodeColoration,Boolean>();
+		prefs = new HashMap<NodeColoration,Boolean>();
 	}
-    }
-    
-    public void ReactivateAllEdges(){
-	for(Map.Entry<NodeColoration,Boolean> nc : voisins.entrySet()){
-	    if(nc.getKey().getIsActive()){
-		this.activeMe(nc.getKey());
-		nc.getKey().activeMe(this);
-	    }
+
+	public HashMap<NodeColoration,Boolean> getVoisins(){
+		return this.voisins;
 	}
-    }
+	
+	public HashMap<NodeColoration,Boolean> getPrefs(){
+		return this.prefs;
+	}
+
+	public void DeactivateAllEdges(){
+		for(Map.Entry<NodeColoration,Boolean> nc : voisins.entrySet()){
+			if(nc.getKey().getIsActive()){
+				removeMe(nc.getKey());
+				nc.getKey().removeMe(this);
+			}
+			//else inutile
+		}
+	}
+
+	public void ReactivateAllEdges(){
+		for(Map.Entry<NodeColoration,Boolean> nc : voisins.entrySet()){
+			if(nc.getKey().getIsActive()){
+				this.activeMe(nc.getKey());
+				nc.getKey().activeMe(this);
+			}
+		}
+	}
 
 
-    public int getDegre(){//Ergo nombre d'arrete à 1
-	int counter=0;
-	for(Boolean b : voisins.values()){
-	    if(b.booleanValue()){
-		counter++;
-	    }
+	public int getDegre(){//Ergo nombre d'arrete à 1
+		int counter=0;
+		for(Boolean b : voisins.values()){
+			if(b.booleanValue()){
+				counter++;
+			}
+		}
+		return counter;
 	}
-	return counter;
-    }
 
-    public void addVoisins(NodeColoration n){
-	voisins.put(n,false);
-	if(NodeColoration.inserted){
-	    NodeColoration.inserted=false;//Done
+	public void addVoisins(NodeColoration n){
+		voisins.put(n,true);
+		if(NodeColoration.inserted){
+			NodeColoration.inserted=false;//Done
+		}
+		else{	    
+			NodeColoration.inserted=true;
+			n.addVoisins(this);//On s'ajoute également chez le voisins.
+		}
+	}    
+	
+	public void addPrefs(NodeColoration n){
+		prefs.put(n,true);
+		if(NodeColoration.inserted){
+			NodeColoration.inserted=false;//Done
+		}
+		else{	    
+			NodeColoration.inserted=true;
+			n.addPrefs(this);//On s'ajoute également chez le voisins.
+		}
+	}  
+	
+	public void setIsActive(boolean b){
+		this.isActive=b;
 	}
-	else{	    
-	    NodeColoration.inserted=true;
-	    n.addVoisins(this);//On s'ajoute également chez le voisins.
+	public boolean getIsActive(){
+		return this.isActive;
 	}
-    }    
-    public void setIsActive(boolean b){
-	this.isActive=b;
-    }
-    public boolean getIsActive(){
-	return this.isActive;
-    }
-    public void setIsSpill(boolean b){
-	this.isSpill=b;
-    }
-    public boolean getIsSpill(){
-	return this.isSpill;
-    }
-    public void setCouleur(int c){
-	this.couleur=c;
-    }
-    public int getCouleur(){
-	return this.couleur;
-    }
-    public char getNom(){
-	return this.nom;
-    }
-    public void removeMe(NodeColoration n){
-	voisins.put(n,false);
-    }
-    public void activeMe(NodeColoration n){
-	voisins.put(n,true);
-    }
-    @Override
-    public int compareTo(NodeColoration other){
-        return this.nom==other.getNom()?0:1;
-    }
-    @Override
+	public void setIsSpill(boolean b){
+		this.isSpill=b;
+	}
+	public boolean getIsSpill(){
+		return this.isSpill;
+	}
+	public void setCouleur(int c){
+		this.couleur=c;
+	}
+	public int getCouleur(){
+		return this.couleur;
+	}
+	public char getNom(){
+		return this.nom;
+	}
+	public void removeMe(NodeColoration n){
+		voisins.put(n,false);
+	}
+	public void activeMe(NodeColoration n){
+		voisins.put(n,true);
+	}
+	public int compareTo(NodeColoration other){
+		return this.nom==other.getNom()?0:1;
+	}
+	@Override
 	public String toString(){
-	return nom+" "+isActive+" "+isSpill+" "+couleur;
-    }
+		return nom+" "+isActive+" "+isSpill+" "+couleur;
+	}
+
+	public boolean isHasPref() {
+		return hasPref;
+	}
+
+	public void setHasPref(boolean hasPref) {
+		this.hasPref = hasPref;
+	}
 }

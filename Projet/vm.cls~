@@ -1,0 +1,8 @@
+(setq VM (gensym))
+(symbol-plist VM)
+(setf (get VM 'prop1) 'val1)
+(symbol-plist VM)
+(setf (get VM 'prop2) 'val2)
+(symbol-plist VM)
+(setf (symbol-plist VM) (list 'prop3 'val3))
+(symbol-plist VM)
