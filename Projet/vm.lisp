@@ -7,9 +7,13 @@
 (setf DPP -1)
 
 
-;VM only func
+;debug
+(defun printvm ();affiche les valeurs contenues dans la VM
+  (symbol-plist VM))
+
+					;VM only func
 (defun get-register (prop)
-  (get VM prop);'VM est setf par make-vm.
+  (get VM prop);'VM is setf by make-vm.
   )
 
 
@@ -21,10 +25,11 @@
 
 (defun set-addr (addr value)) ;Will be implemented at the same time as memory
 
-(defun literalOrRegister (V);if V is a literal, return the literal, otherwise return the register
-  (if (integerp V) 
-       (get-register V)
-     (V)))
+(defun literalOrRegister (v);if V is a literal, return the literal, otherwise return the register
+  (if (integerp v) 
+      v
+    (get-register v)
+    ))
 
 
 
@@ -142,5 +147,5 @@
 
 (setf VM (make-vm "VM0"))
 
-(print (symbol-plist VM))
+
 (print (get-register 'PC))
