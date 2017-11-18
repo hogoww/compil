@@ -132,15 +132,22 @@
 				(symbol-plist (get symb symb))))
 
 					;VM only func
-    (setf (get symb 'get-register) (lambda (prop)
-				     (get (get symb symb) prop);'VM is setf by make-vm.
-				     ))
+    (setf (get symb 'get-register)
+	  (lambda (prop)
+	    (get symb prop)
+	    ))
+    
+    (setf (get symb 'set-register)
+	  (lambda (prop value)
+	    (setf (get symb prop) value)
+	    ))
+
 
     (setf (get symb 'VM) symb)
     (setf (get symb 'name) name)
     (setf (get symb 'BP) (+ GETNBLINE 1))
     (setf (get symb 'SP) (symbol-plist 'BP))
-    (setf (get symb 'MEM) (make-array (+ (get-register (get 'BP) STACK_SIZE))))
+    (setf (get symb 'MEM) (make-array (+ (get symb 'BP) STACK_SIZE)))
     (setf (get symb 'FP) nil)
     
     (setf (get symb 'R0) 0)
@@ -153,8 +160,7 @@
 
     ))
 
-(set-register 'R1 12)
-
 
 (make-vm 'VM "VM0")
 
+((get VM 'set-register) ('R1 12))
