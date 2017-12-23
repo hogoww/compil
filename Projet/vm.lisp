@@ -128,10 +128,17 @@
   (prog1 (setf symb (make-symbol name))
 
     ;Print what the vm contains
-    (setf (get symb 'printvm) (lambda ()
-				(symbol-plist (get symb symb))))
+    ;; (setf (get symb 'printvm) (lambda ()
+    ;; 				(symbol-plist (get symb symb))))
 
-					;VM only func
+	
+    (setf (get symb 'print-property)
+	  (lambda (prop)
+	    (prog1 (print (get symb prop))
+	      (print prop))
+	      )
+	    )
+
     (setf (get symb 'get-register)
 	  (lambda (prop)
 	    (get symb prop)
@@ -151,7 +158,7 @@
     (setf (get symb 'FP) nil)
     
     (setf (get symb 'R0) 0)
-    (setf (get symb 'R1) 0)
+    (setf (get symb 'R1) 1)
     (setf (get symb 'R2) 0)
     (setf (get symb 'RA) nil)
     (setf (get symb 'FLG) nil)
@@ -161,6 +168,6 @@
     ))
 
 
-(make-vm 'VM "VM0")
+(setf vm (make-vm 'VM "VM0"))
 
-((get VM 'set-register) ('R1 12))
+(apply (get vm 'print-register) '(R1))
