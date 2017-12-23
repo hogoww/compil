@@ -170,4 +170,4 @@
 
 (setf vm (make-vm 'VM "VM0"))
 
-(apply (get vm 'print-register) '(R1))
+(apply (get vm 'print-property) '(R1))
