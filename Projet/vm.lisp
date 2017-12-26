@@ -6,37 +6,6 @@
 (setf DEQ 0)
 (setf DPP -1)
 
-
-;; ;debug
-;; (defun printvm ();Print what the vm contains
-;;   (print (symbol-plist VM)))
-
-;; 					;VM only func
-;; (defun get-register (prop)
-;;   (get VM prop);'VM is setf by make-vm.
-;;   )
-
-
-;; (defun set-register (prop value)
-;;   (setf (get VM prop) value);'VM est setf par make-vm.
-;;   )
-
-;; (defun get-addr (addr)) ;Will be implemented at the same time as memory
-
-;; (defun set-addr (addr value)) ;Will be implemented at the same time as memory
-
-;; (defun literalOrRegister (v);if V is a literal, return the literal, otherwise return the register
-;;   (if (integerp v) 
-;;       v
-;;     (get-register v)
-;;     ))
-
-
-
-;; ;register operation 
-;; ;they should be passed as propriety of vm?
-
-
 (defun make-vm (symb name)
   (prog1 (setf symb (make-symbol name))
 
@@ -60,7 +29,19 @@
 	  (lambda (prop value)
 	    (setf (get symb prop) value)
 	    ))
+
+    (setf (get symb 'get-addr)
+	  (lambda (addr) )) ;Will be implemented at the same time as memory
     
+    (setf (get symb 'set-addr)
+	  (lambda (addr value) )) ;Will be implemented at the same time as memory
+
+    (setf (get symb 'literalOrRegister)
+	  (lambda (v);if V is a literal, return the literal, otherwise return the register
+	    (if (integerp v)
+		v
+	      (get-register v)
+	      )))
 
     (setf (get symb 'VM) symb)
     (setf (get symb 'name) name)
@@ -79,20 +60,20 @@
 
     ;Public func
     ;;register operation 
-
-    (setf (get symb 'MOVE) 
+    
+    (setf (get symb 'MOVE)
 	  (lambda (target dest);targer register or integer. Dest register.
-	    (set-register dest
+	    (apply (get symb 'set-register) dest
 			  (literalOrRegister target))))
     
     (setf (get symb 'LOAD) (lambda (addr R)
-      (set-register R (get-addr addr))))
+      (apply (get symb 'set-register) R (get symb 'get-addr) addr)))
 
     (setf (get symb 'STORE) (lambda  (reg addr)
       (set-addr addr (get-register reg))))
 
     (setf (get symb 'ADD) (lambda (R1 R2)
-      (set-register R2
+      (apply (get symb 'set-register) R2
 		    (+ (get-register R1) (get-register R2)))))
 
     (setf (get symb 'SUB) (lambda (R1 R2)
@@ -100,31 +81,30 @@
 	    (- (get-register R1) (get-register R2)))))
 
     (setf (get symb 'MUL) (lambda (R1 R2)
-      (set-register R2
+      (apply (get symb 'set-register) R2
 		    (* (get-register R1) (get-register R2)))))
 
     (setf (get symb 'DIV) (lambda (R1 R2)
-      (set-register R2
+      (apply (get symb 'set-register) R2
 		    (if (equal (get-register R1) 0)
 			(print "error div by 0")
 		      (/ (get-register R1) (get-register R2))))))
 
-
     (setf (get symb 'PUSH) (lambda  (R value)
       (setf (get-register SP) value)
-      (set-register SP (+ (get-register SP) 1))))
+      (apply (get symb 'set-register) SP (+ (get-register SP) 1))))
 
     (setf (get symb 'POP) (lambda (R)
       (prog1 
 	  (get-register SP)
-	(set-register SP (- (get-register SP) 1)))))
+	(apply (get symb 'set-register) SP (- (get-register SP) 1)))))
 
     (setf (get symb 'CMP) (lambda (R1 R2); check if the order of the flag is ok
       (if (equal (literalOrRegister R1) (get-register R2))
-	  (set-register 'FLG DEQ)
+	  (apply (get symb 'set-register) 'FLG DEQ)
 	(if (> (literalOrRegister R1) (get-register R2))
-	    (set-register 'FLG DPG); R1 > R2
-	  (set-register 'FLG DPP))))); R1 < R2 
+	    (apply (get symb 'set-register) 'FLG DPG); R1 > R2
+	  (apply (get symb 'set-register) 'FLG DPP))))); R1 < R2 
 
     (setf (get symb 'JPG) (lambda (etiq)
       (if (equal (get-register 'FLG) DPG)
@@ -147,7 +127,7 @@
 	  (JMP etiq))))
 
     (setf (get symb 'JMP) (lambda (etiq)
-      (set-register PC etiq)))
+      (apply (get symb 'set-register) PC etiq)))
 
     (setf (get symb 'JSR) (lambda (etiq)
       (p (get-register RA));push
@@ -160,14 +140,16 @@
 
     (setf (get symb 'HALT) (lambda ()));To do
 
-    (setf (get symb 'CONS) (lambda (R1 R2);cons
-      (set-register R2 (cons (get-register R1) (get-register R2)))))
+    (setf (get symb 'CONS) (lambda (v R2);cons ;;v can be a value or a register
+      (apply (get symb 'set-register) R2 
+		    (cons (get-register (literalOrRegister v)) 
+			  (get-register R2)))))
 
     (setf (get symb 'CAR) (lambda (R);car
-      (set-register R (car (get-register R1)))))
+      (apply (get symb 'set-register) R (car (get-register R1)))))
 
     (setf (get symb 'CDR) (lambda (R);cdr
-      (set-register R (cdr (get-register R1)))))
+      (apply (get symb 'set-register) R (cdr (get-register R1)))))
 
     ))
 
@@ -182,3 +164,4 @@
 (func-vm 'print-property '(R1))
 (func-vm 'get-register '(R1))
 (func-vm 'print-vm '())
+(func-vm 'MOVE '(R1 R2))
