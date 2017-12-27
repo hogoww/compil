@@ -20,13 +20,12 @@
     (setf (get symb 'print-property);print property value
 	  (lambda (prop)
 	    (prog1 (print (get symb prop))
-	      (print prop))))    
+	      (print prop))))
 
     ;private func
     (setf (get symb 'get-register)
 	  (lambda (prop)
-	    (get symb prop)
-	    ))
+	    (get symb prop)))
     
     (setf (get symb 'set-register)
 	  (lambda (prop value)
@@ -39,6 +38,23 @@
     (setf (get symb 'set-addr)
 	  (lambda (addr value) )) ;Will be implemented at the same time as memory
     
+    (setf (get symb 'code-end)
+	  (lambda ()
+	    (funcall (get symb 'get-addr) 0)
+	    ))
+    
+    (setf (get symb 'heap-start)
+	  (lambda ()
+	    (- (funcall (get symb 'code-end)) 1)))
+
+    (setf (get symb 'heap-end)
+	  (lambda ()
+	    (+ (- (funcall (get symb 'code-end)) 1) ) HEAP_SIZE))
+
+    (setf (get symb ')
+	  (lambda ()
+	    (+ (- (funcall (get symb 'code-end)) 1) ) HEAP_SIZE))
+
     (setf (get symb 'literalOrRegister)
 	  (lambda (v);if V is a literal, return the literal, otherwise return the register
 	    (if (integerp v)
@@ -55,8 +71,7 @@
 	  (num-instruct 1))
       (setf (get symb 'memory-size) (+ code-size STACK_SIZE HEAP_SIZE))
       (setf (get symb 'MEM) (make-array (get symb 'memory-size)))
-      (loop while (<=
- num-instruct code-size)
+      (loop while (<= num-instruct code-size)
 	    do
 	    (setf (aref (get symb 'MEM)
 			(- (get symb 'memory-size) num-instruct))
@@ -66,9 +81,9 @@
       )
 
     
-    (setf (get symb 'BP) (+ GETNBLINE 1))
+    (setf (get symb 'BP) 0)
 
-    (setf (get symb 'SP) (symbol-plist 'BP));; VERIFY THIS LATER ;;;;;;;;;;;;;;;;;;;;;;;;
+    (setf (get symb 'SP) 0))
     (setf (get symb 'FP) nil)    
 
     (setf (get symb 'R0) 0)
