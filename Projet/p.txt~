@@ -1,0 +1,17 @@
+(setq v (make-array 3)) ; creation du vecteur
+
+(setf (aref v 0) 1) ; v[0]:= 1
+(setf (aref v 1) 2)
+(setf (aref v 2) 3)
+
+
+(defun print-memory (v)
+  (let ((iterator 0))  
+    (loop while 
+	  (not(equal 
+	       (aref v iterator) nil))
+	  
+	do (setq iterator (+ iterator 1))
+	(print (aref v iterator)))))
+  
+(print-memory v)

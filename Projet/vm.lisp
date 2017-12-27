@@ -1,4 +1,5 @@
-(setf STACK_SIZE 10) ;temp, till we actually load things and stuff
+(setf STACK_SIZE 5) ;temp, till we actually load things and stuff
+(setf HEAP_SIZE 5)
 (setf MAIN_ADRESS 12) ;adress of the first instruction to evaluate
 (setf GETNBLINE 5) ;first line of compiled file must be the number of code line we have to load
 
@@ -8,6 +9,8 @@
 
 (defun make-vm (symb name)
   (prog1 (setf symb (make-symbol name))
+    (setf (get symb 'VM) symb)
+    (setf (get symb 'name) name)    
 
     ;Print what the vm contains
     (setf (get symb 'print-vm);Will print the memory too, which ain't that good...
@@ -42,14 +45,32 @@
 		v
 	      (funcall (get symb 'get-register) v)
 	      )))
-
-    (setf (get symb 'VM) symb)
-    (setf (get symb 'name) name)
-    (setf (get symb 'BP) (+ GETNBLINE 1))
-    (setf (get symb 'SP) (symbol-plist 'BP))
-    (setf (get symb 'MEM) (make-array (+ (get symb 'BP) STACK_SIZE)))
-    (setf (get symb 'FP) nil)
     
+
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    (setf (get symb 'file) "file.txt");;Change to function args!
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    (let* ((flow (open (get symb 'file))) 
+	  (code-size (parse-integer (read-line flow)))
+	  (num-instruct 1))
+      (setf (get symb 'memory-size) (+ code-size STACK_SIZE HEAP_SIZE))
+      (setf (get symb 'MEM) (make-array (get symb 'memory-size)))
+      (loop while (<=
+ num-instruct code-size)
+	    do
+	    (setf (aref (get symb 'MEM)
+			(- (get symb 'memory-size) num-instruct))
+		  (read-line flow))
+	    (setf num-instruct (+ num-instruct 1)))
+      (close flow)
+      )
+
+    
+    (setf (get symb 'BP) (+ GETNBLINE 1))
+
+    (setf (get symb 'SP) (symbol-plist 'BP));; VERIFY THIS LATER ;;;;;;;;;;;;;;;;;;;;;;;;
+    (setf (get symb 'FP) nil)    
+
     (setf (get symb 'R0) 0)
     (setf (get symb 'R1) 12)
     (setf (get symb 'R2) 34)
@@ -204,11 +225,12 @@
 ;; (func-vm 'print-property '(R1))
 ;; (func-vm 'set-register '(R1 12))
 ;; (func-vm 'get-register '(R1))
-;;(func-vm 'print-vm '())
+(funcall (get vm 'print-vm))
 
 ;(funcall (get vm 'print-vm))
-(funcall (get vm 'print-property) 'R1)
-(funcall (get vm 'print-property) 'R2)
-(funcall (get vm 'MOVE) 'R2 'R1)
-(funcall (get vm 'print-property) 'R1)
-(funcall (get vm 'print-property) 'R2)
+;; (funcall (get vm 'print-property) 'R1)
+;; (funcall (get vm 'print-property) 'R2)
+;; (funcall (get vm 'MOVE) 'R2 'R1)
+;; (funcall (get vm 'print-property) 'R1)
+;; (funcall (get vm 'print-property) 'R2)
+(funcall (get vm 'print-property) 'memory-size)

@@ -1,0 +1,4 @@
+2
+(print e)
+(func d)
+(halt)
