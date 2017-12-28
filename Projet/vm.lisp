@@ -1,7 +1,8 @@
+(load "assoclist.lisp")
+
 (setf STACK_SIZE 5) ;temp, till we actually load things and stuff
 (setf HEAP_SIZE 5)
-(setf MAIN_ADRESS 12) ;adress of the first instruction to evaluate
-(setf GETNBLINE 5) ;first line of compiled file must be the number of code line we have to load
+(setf MAIN_ADRESS 12) ;adress of the first instruction to eval
 
 (setf DPG 1)
 (setf DEQ 0)
@@ -36,24 +37,20 @@
 	  (lambda (addr) )) ;Will be implemented at the same time as memory
     
     (setf (get symb 'set-addr)
-	  (lambda (addr value) )) ;Will be implemented at the same time as memory
+	  (lambda (addr value))) ;Will be implemented at the same time as memory
     
-    (setf (get symb 'code-end)
-	  (lambda ()
-	    (funcall (get symb 'get-addr) 0)
-	    ))
+    ;; (setf (get symb 'code-end)
+    ;; 	  (lambda ()
+    ;; 	    (funcall (get symb 'get-addr) 0)
+    ;; 	    ))
     
-    (setf (get symb 'heap-start)
-	  (lambda ()
-	    (- (funcall (get symb 'code-end)) 1)))
+    ;; (setf (get symb 'heap-start)
+    ;; 	  (lambda ()
+    ;; 	    (- (funcall (get symb 'code-end)) 1)))
 
-    (setf (get symb 'heap-end)
-	  (lambda ()
-	    (+ (- (funcall (get symb 'code-end)) 1) ) HEAP_SIZE))
-
-    (setf (get symb ')
-	  (lambda ()
-	    (+ (- (funcall (get symb 'code-end)) 1) ) HEAP_SIZE))
+    ;; (setf (get symb 'heap-end)
+    ;; 	  (lambda ()
+    ;; 	    (+ (- (funcall (get symb 'code-end)) 1) ) HEAP_SIZE))
 
     (setf (get symb 'literalOrRegister)
 	  (lambda (v);if V is a literal, return the literal, otherwise return the register
@@ -66,8 +63,8 @@
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     (setf (get symb 'file) "file.txt");;Change to function args!
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    (let* ((flow (open (get symb 'file))) 
-	  (code-size (parse-integer (read-line flow)))
+    (let* ((flow (open (get symb 'file)));;we could add the error handling
+	  (code-size (parse-integer (read-line flow)));;here too
 	  (num-instruct 1))
       (setf (get symb 'memory-size) (+ code-size STACK_SIZE HEAP_SIZE))
       (setf (get symb 'MEM) (make-array (get symb 'memory-size)))
@@ -79,12 +76,12 @@
 	    (setf num-instruct (+ num-instruct 1)))
       (close flow)
       )
-
+    
     
     (setf (get symb 'BP) 0)
 
-    (setf (get symb 'SP) 0))
-    (setf (get symb 'FP) nil)    
+    (setf (get symb 'SP) 0)
+    (setf (get symb 'FP) nil)
 
     (setf (get symb 'R0) 0)
     (setf (get symb 'R1) 12)
@@ -139,7 +136,7 @@
 	    (funcall (get symb 'set-register) 
 	       dest
 	       (if (equal (funcall (get symb 'get-register) dest) 0)
-		   (warn "error div by 0")
+		   (error "error div by 0")
 		 (/ (funcall (get symb 'get-register) target) (funcall (get symb 'get-register) dest))))))
     
     (setf (get symb 'PUSH) 
@@ -237,15 +234,11 @@
 (setf vm (make-vm 'VM "VM0"))
 
 
-;; (func-vm 'print-property '(R1))
-;; (func-vm 'set-register '(R1 12))
-;; (func-vm 'get-register '(R1))
-(funcall (get vm 'print-vm))
-
-;(funcall (get vm 'print-vm))
 ;; (funcall (get vm 'print-property) 'R1)
 ;; (funcall (get vm 'print-property) 'R2)
 ;; (funcall (get vm 'MOVE) 'R2 'R1)
 ;; (funcall (get vm 'print-property) 'R1)
 ;; (funcall (get vm 'print-property) 'R2)
+
+;;(funcall (get vm 'print-vm))
 (funcall (get vm 'print-property) 'memory-size)
