@@ -17,6 +17,11 @@
     (setf (get symb 'print-vm);Will print the memory too, which ain't that good...
 	  (lambda ()
 	    (print (symbol-plist symb))))
+
+    (setf (get symb 'print-memory);Will print the memory too, which ain't that good...
+	  (lambda ()
+	    (print (get symb 'MEM))))
+
 		
     (setf (get symb 'print-property);print property value
 	  (lambda (prop)
@@ -34,10 +39,11 @@
 	    ))
 
     (setf (get symb 'get-addr)
-	  (lambda (addr) )) ;Will be implemented at the same time as memory
+	  (lambda (addr) (aref (get symb 'MEM) addr)))
     
     (setf (get symb 'set-addr)
-	  (lambda (addr value))) ;Will be implemented at the same time as memory
+	  (lambda (addr value)
+	    (setf (aref (get symb 'MEM) addr) value)))
     
     ;; (setf (get symb 'code-end)
     ;; 	  (lambda ()
@@ -60,25 +66,34 @@
 	      )))
     
 
+    (setf (get symb 'labels) (list_assoc_make))
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     (setf (get symb 'file) "file.txt");;Change to function args!
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     (let* ((flow (open (get symb 'file)));;we could add the error handling
+	  (nb-label (parse-integer (read-line flow)));;here too
 	  (code-size (parse-integer (read-line flow)));;here too
+	  (num-label 0)
 	  (num-instruct 1))
       (setf (get symb 'memory-size) (+ code-size STACK_SIZE HEAP_SIZE))
       (setf (get symb 'MEM) (make-array (get symb 'memory-size)))
-      (loop while (<= num-instruct code-size)
+      (loop while (< num-label nb-label)
 	    do
-	    (setf (aref (get symb 'MEM)
-			(- (get symb 'memory-size) num-instruct))
-		  (read-line flow))
+	    (let ((lab (read flow)))
+	      (progn (setf (get symb 'labels) (list_assoc_add (get symb 'labels) (cadr lab) (caddr lab)))
+		     (setf num-label (+ num-label 1))
+		     )))
+      (loop while (<= num-instruct code-size);to do memory-size-1 at the start, so no out of bound
+	    do
+	    (funcall (get symb 'set-addr)
+		     (- (get symb 'memory-size) num-instruct)
+		     (read flow))
 	    (setf num-instruct (+ num-instruct 1)))
       (close flow)
       )
     
     
-    (setf (get symb 'BP) 0)
+    (setf (get symb 'BP) 0);no variable for now.
 
     (setf (get symb 'SP) 0)
     (setf (get symb 'FP) nil)
@@ -96,7 +111,7 @@
     
     (setf (get symb 'MOVE)
 	  (lambda (target dest);targer register or integer. Dest register.
-	    (funcall (get symb 'set-register) 
+	    (funcall (get symb 'set-register)
 		   dest
 		   (funcall (get symb 'literalOrRegister) target))))
     
@@ -142,11 +157,11 @@
     (setf (get symb 'PUSH) 
 	  (lambda  (R value)
 	    (progn (funcall (get symb 'set-addr)
-		     (funcall (get symb 'get-register) 'SP) value)
-	    (funcall (get symb 'set-register) 
-		     'SP 
-		     (+ (funcall (get symb 'get-register) 'SP) 1)))))
-   
+			    (funcall (get symb 'get-register) 'SP) value)
+		   (funcall (get symb 'set-register) 
+			    'SP 
+			    (+ (funcall (get symb 'get-register) 'SP) 1)))))
+    
     (setf (get symb 'POP) 
 	  (lambda (R)
 	    (prog1 
@@ -192,7 +207,7 @@
 	  (lambda (etiq)
 	    (funcall (get symb 'set-register)
 		     PC 
-		     etiq)))
+		     (+ 1 etiq))))
 
     (setf (get symb 'JSR) 
 	  (lambda (etiq)
@@ -228,6 +243,22 @@
 	    (funcall (get symb 'set-register) 
 		     dest
 		     (cdr (funcall (get symb 'get-register) target)))))
+    
+    (setf (get symb 'run)
+	  (lambda ()
+	    (let ((instruct (funcall (get symb 'get-addr) (get symb 'PC))))
+	      (loop while (not (equal (car instruct) 'HALT))
+		    do
+		    (print instruct)
+		    (funcall (get vm 'print-property) (cadr instruct))
+		    (funcall (get vm 'print-property) (caddr instruct))
+		    (case (Length instruct)
+		      ((1) (funcall (get symb (car instruct))))
+		      ((2) (funcall (get symb (car instruct)) (cadr instruct)))
+		      ((3) (funcall (get symb (car instruct)) (cadr instruct) (caddr instruct))))
+		      
+		    (funcall (get symb 'set-register) 'PC (- (funcall (get symb 'get-register) 'PC) 1))
+		    (setf instruct (funcall (get symb 'get-addr) (get symb 'PC)))))))
     ))
 
 
@@ -240,5 +271,10 @@
 ;; (funcall (get vm 'print-property) 'R1)
 ;; (funcall (get vm 'print-property) 'R2)
 
-;;(funcall (get vm 'print-vm))
+;(funcall (get vm 'print-property) 'labels)
 (funcall (get vm 'print-property) 'memory-size)
+(funcall (get vm 'run))
+
+
+(funcall (get vm 'print-property) 'R1)
+(funcall (get vm 'print-property) 'R2)

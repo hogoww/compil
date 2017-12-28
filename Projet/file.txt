@@ -1,4 +1,7 @@
 2
-(print e)
-(func d)
-(halt)
+3
+(label main 2)
+(label f 1)
+(MOVE R1 R2)
+(ADD R1 R2)
+(HALT)
