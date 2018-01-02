@@ -64,6 +64,14 @@
 		v
 	      (funcall (get symb 'get-register) v)
 	      )))
+
+    (setf (get symb 'pop_to_list) 
+	  (lambda (nb_arg) 
+	    (if (equal 0 nb_arg)
+		nil
+	      (cons (progn (funcall (get symb 'POP) 'R0)
+			   (funcall (get symb 'get-register) 'R0))
+		    (funcall (get symb 'pop_to_list) (- nb_arg 1))))))
     
 
     (setf (get symb 'labels) (list_assoc_make))
@@ -96,11 +104,11 @@
     (setf (get symb 'BP) 0);no variable for now.
 
     (setf (get symb 'SP) 0)
-    (setf (get symb 'FP) nil)
+    (setf (get symb 'FP) 0)
 
     (setf (get symb 'R0) 0)
-    (setf (get symb 'R1) 12)
-    (setf (get symb 'R2) 34)
+    (setf (get symb 'R1) 0)
+    (setf (get symb 'R2) 0)
     (setf (get symb 'RA) nil)
     (setf (get symb 'FLG) nil)
     
@@ -243,6 +251,11 @@
 	    (funcall (get symb 'set-register) 
 		     dest
 		     (cdr (funcall (get symb 'get-register) target)))))
+
+    (setf (get symb 'PRIMIVITE)
+	  (lambda (funcname nb_arg)
+	    (set-register 'R0 (apply funcname (funcall (get symb 'pop_to_list) nb_arg)))
+	    ))
     
     (setf (get symb 'run)
 	  (lambda ()
@@ -254,7 +267,9 @@
 		    (funcall (get vm 'print-property) (caddr instruct))
 		    (case (Length instruct)
 		      ((1) (funcall (get symb (car instruct))))
-		      ((2) (funcall (get symb (car instruct)) (cadr instruct)))
+		      ((2) (if (get symb (car instruct)) 
+			       (funcall (get symb (car instruct)) (cadr instruct))
+			     (funcall (get symb 'PRIMIVITE) (car instruct) (cadr instruct))))
 		      ((3) (funcall (get symb (car instruct)) (cadr instruct) (caddr instruct))))
 		      
 		    (funcall (get symb 'set-register) 'PC (- (funcall (get symb 'get-register) 'PC) 1))
