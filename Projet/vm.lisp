@@ -164,17 +164,23 @@
     
     (setf (get symb 'PUSH) 
 	  (lambda  (R value)
-	    (progn (funcall (get symb 'set-addr)
-			    (funcall (get symb 'get-register) 'SP) value)
-		   (funcall (get symb 'set-register) 
-			    'SP 
-			    (+ (funcall (get symb 'get-register) 'SP) 1)))))
+	    (progn 
+	      (funcall (get symb 'set-register) 
+		       'SP 
+		       (+ (funcall (get symb 'get-register) 'SP) 1))
+	      (funcall (get symb 'set-addr)
+			    (funcall (get symb 'get-register) 'SP)
+			    value))))
+
     
     (setf (get symb 'POP) 
 	  (lambda (R)
-	    (prog1 
-		(funcall (get symb 'get-register) 'SP)
-	      (funcall (get symb 'set-register) 
+	    (progn
+		(funcall (get symb 'set-register) 
+			 R
+			 (funcall (get symb 'get-addr) 
+				  (funcall (get symb 'get-register) 'SP)))
+	      (funcall (get symb 'set-register)
 		       'SP 
 		       (- (funcall (get symb 'get-register) 'SP) 1)))))
     
