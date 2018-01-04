@@ -1,6 +1,6 @@
 (defun step2 (expr def main)
   (if (null expr)
-      (cons def (invert main)
+      (cons def (invert main))
     (if (eq (caar expr) 'defun)
 	(step2 (cdr expr) 
 	       (if (null (list_assoc_search def (cadar expr)))
