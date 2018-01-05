@@ -127,12 +127,12 @@
 	  (lambda (addr R)
 	    (funcall (get symb 'set-register)
 		     R 
-		     (get symb 'get-addr) addr)))
+		     (get symb 'get-addr) (literalOrRegister addr))))
   
     (setf (get symb 'STORE) 
 	  (lambda  (reg addr)
 	    (funcall (get symb 'set-addr) 
-		     addr 
+		     (literalOrRegister addr)
 		     (funcall (get symb 'get-register) reg))))
 
     (setf (get symb 'ADD) 
