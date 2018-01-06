@@ -70,8 +70,8 @@
 		  (append
 		   (list 
 		    (if (not (null (cadddr expr)))
-			(cons 'JEQ else)
-		      (cons 'JEQ end)))
+			(list 'JEQ else)
+		      (list 'JEQ end)))
 		   (step1 (caddr expr) env funcnames)
 		   
 		   (if (not (null (cadddr expr)))
@@ -111,7 +111,7 @@
 			  '(POP R2)
 			  '(MOVE R1 FP)
 			  '(MOVE R2 SP))
-		  (list 'PRIMITIVE (- (length expr) 1))
+		  (list (list (car expr) (- (length expr) 1)))
 		  ))))
       
      )))
