@@ -34,7 +34,8 @@
 (defun compile-args (list-arg env)
   (if (null list-arg)
       nil
-    (append (step1 (car list-arg) env) 
+    (append (step1 (car list-arg) env)
+	    (list '(PUSH R0))
 	    (compile-args (cdr list-arg) env))))
   
 
@@ -103,7 +104,7 @@
   
 
 
-(print (step1 '(+ f 2) (list '(f 1))))
+(print (step1 '(+ f 5) (list '(f 1))))
 
 ;; ;(with-open-file (str "./file.lispvm"
 ;;                      :direction :output
