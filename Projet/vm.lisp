@@ -146,7 +146,8 @@
     (setf (get symb 'SUB) 
 	  (lambda (target dest)
 	    (funcall (get symb 'get-register) dest) 
-		  (- (funcall (get symb 'literalOrRegister) target) (funcall (get symb 'get-register) dest))))
+		  (- (funcall (get symb 'literalOrRegister) target) 
+		     (funcall (get symb 'get-register) dest))))
 
     (setf (get symb 'MUL) 
 	  (lambda (target dest)
@@ -154,7 +155,7 @@
 		     dest
 		     (* (funcall (get symb 'get-register) target) (funcall (get symb 'get-register) dest)))))
     
-    (setf (get symb 'DIV) 
+    (setf (get symb 'DIV)
 	  (lambda (target dest)
 	    (funcall (get symb 'set-register) 
 	       dest
@@ -162,7 +163,7 @@
 		   (error "error div by 0")
 		 (/ (funcall (get symb 'get-register) target) (funcall (get symb 'get-register) dest))))))
     
-    (setf (get symb 'PUSH) 
+    (setf (get symb 'PUSH)
 	  (lambda  (R value)
 	    (progn 
 	      (funcall (get symb 'set-register) 

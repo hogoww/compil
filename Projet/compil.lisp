@@ -21,7 +21,6 @@
 			     main)
       (separate-defun-main (cdr expr) def funcnames (cons (car expr) main)))))
 
-
 (setf label 0)
 (defun next_label ()
   (setf label (+ label 1)))
@@ -32,7 +31,6 @@
     (append (step1 (car list-arg) env funcnames)
 	    (list '(PUSH R0))
 	    (compile-args (cdr list-arg) env funcnames))))
-  
 
 (defun make-env (list-arg nb-arg)
   (if (eq 0 nb-arg)
@@ -42,7 +40,7 @@
 
 (defun step1 (expr env funcnames)
   (progn
-    (print expr)
+    ;;(print expr)
     (cond 
      ((atom expr)
       (progn 
@@ -88,29 +86,34 @@
 	(if (not (null (fboundp (cadr expr))))
 	    (error "You're trying to replace a lisp function")
 	  (append (list (list 'label (cadr expr)))
-		  (step1 (cadddr expr) (make-env (caddr expr) (length (caddr expr))) funcnames)
+		  (step1 (cadddr expr) 
+			 (make-env (caddr expr) (length (caddr expr)))
+			 funcnames)
 		  (list '(RTN))))))
      
      ;;Ajouter un cas QUOTE 
      
      (t
       (progn 
-					;(print "funcall")
+	;;(print "funcall")
 	(append (compile-args (cdr expr) env funcnames);funcall
-		(list (list 'MOVE (- (length expr) 1) 'R0)
-		      '(PUSH R0)
-		      '(MOVE FP R1)
-		      '(MOVE SP FP)
-		      '(MOVE SP R2)
-		      (list 'SUB (length expr) 'R2);Enleve n+1 arguments
-		      '(PUSH R2)
-		      '(PUSH R1)
-		      (list 'JSR (car expr))
-		      '(POP R1)
-		      '(POP R2)
-		      '(MOVE R1 FP)
-		      '(MOVE R2 SP)))))
-
+		(if (list_assoc_search funcnames (car expr));user define func		
+		    (list (list 'MOVE (- (length expr) 1) 'R0)
+			  '(PUSH R0)
+			  '(MOVE FP R1)
+			  '(MOVE SP FP)
+			  '(MOVE SP R2)
+			  (list 'SUB (length expr) 'R2);Enleve n+1 arguments
+			  '(PUSH R2)
+			  '(PUSH R1)
+			  (list 'JSR (car expr))
+			  '(POP R1)
+			  '(POP R2)
+			  '(MOVE R1 FP)
+			  '(MOVE R2 SP))
+		  (list 'PRIMITIVE (- (length expr) 1))
+		  ))))
+      
      )))
   
 
@@ -125,7 +128,7 @@
   (if (null list)
       nil
     (append (step1 (car list) '() definedfunc)
-	    '(PRINT)
+	    (list '(PRINT))
 	    (compile-main (cdr list) definedfunc))))
 
 (defun compile-fichier (file) 
