@@ -141,6 +141,7 @@
 (defun compile-parsed-file (list) 
   (append
    (compile-func (car list) (cadr list))
+   (list '(label main))
    (compile-main (caddr list) (cadr list))
    (list '(HALT))))
 

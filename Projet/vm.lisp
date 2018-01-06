@@ -109,7 +109,7 @@
     (setf (get symb 'R0) 0)
     (setf (get symb 'R1) 0)
     (setf (get symb 'R2) 0)
-    (setf (get symb 'RA) nil)
+    ;;(setf (get symb 'RA) nil)
     (setf (get symb 'FLG) nil)
     
     (setf (get symb 'PC) MAIN_ADRESS)
@@ -226,20 +226,19 @@
 
     (setf (get symb 'JSR) 
 	  (lambda (etiq)
-	    (funcall (get symb 'PUSH) (funcall (get symb 'get-register) RA));push
-	    (funcall (get symb 'JMP) etiq)))
+	    (funcall (get symb 'PUSH) (funcall (get symb 'get-register) 'PC));push
+	    (funcall (get symb 'JMP) (literalOrRegister etiq))))
 
     (setf (get symb 'RTN)
 	  (lambda (etiq)
-	    (funcall (get symb 'POP) 
-		     (funcall (get symb 'get-addr) (funcall (get symb 'get-register) 'SP))
+	    (funcall (get symb 'POP)
 		     'PC)))
     
     (setf (get symb 'NOP)
 	  (lambda ()));to do
 
     (setf (get symb 'HALT)
-	  (lambda ()));To do
+	  (lambda ()));isn't really needed
 
     (setf (get symb 'CONS) 
 	  (lambda (v R2);cons ;;v can be a value or a register
