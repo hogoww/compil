@@ -76,16 +76,16 @@
 		   
 		   (if (not (null (cadddr expr)))
 		       (append (list (list 'JMP end)
-				     (list 'label else))
+				     (list 'LABEL else))
 			       (step1 (cadddr expr) env funcnames)))
-		   (list (list 'label end)))))))
+		   (list (list 'LABEL end)))))))
 
      ((equal (car expr) 'defun)
       (progn 
 	;;(print "defun")    
 	(if (not (null (fboundp (cadr expr))))
 	    (error "You're trying to replace a lisp function")
-	  (append (list (list 'label (cadr expr)))
+	  (append (list (list 'LABEL (cadr expr)))
 		  (step1 (cadddr expr) 
 			 (make-env (caddr expr) (length (caddr expr)))
 			 funcnames)
@@ -141,7 +141,7 @@
 (defun compile-parsed-file (list) 
   (append
    (compile-func (car list) (cadr list))
-   (list '(label main))
+   (list '(LABEL main))
    (compile-main (caddr list) (cadr list))
    (list '(HALT))))
 

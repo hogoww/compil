@@ -1,4 +1,4 @@
-((LABEL FACT) 
+(LABEL FACT) 
 (MOVE FP R0)
 (SUB 1 R0)
 (LOAD R0 R0)
@@ -57,4 +57,4 @@
 (MOVE R1 FP)
 (MOVE R2 SP)
 (PRINT)
-(HALT)) 
+(HALT)

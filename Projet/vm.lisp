@@ -1,14 +1,14 @@
 (load "assoclist.lisp")
 
-(setf STACK_SIZE 5) ;temp, till we actually load things and stuff
-(setf HEAP_SIZE 5)
-(setf MAIN_ADRESS 12) ;adress of the first instruction to eval
-
+(setf STACK_SIZE 150) ;temp, till we actually load things and stuff
+(setf HEAP_SIZE 0)
+(setf MAIN_ADRESS 49) ;adress of the first instruction to eval
 (setf DPG 1)
 (setf DEQ 0)
 (setf DPP -1)
 
-(defun make-vm (symb name)
+
+(defun make-vm (symb name filename)
   (prog1 (setf symb (make-symbol name))
     (setf (get symb 'VM) symb)
     (setf (get symb 'name) name)    
@@ -18,7 +18,7 @@
 	  (lambda ()
 	    (print (symbol-plist symb))))
 
-    (setf (get symb 'print-memory);Will print the memory too, which ain't that good...
+    (setf (get symb 'print-memory)
 	  (lambda ()
 	    (print (get symb 'MEM))))
 
@@ -64,7 +64,7 @@
 		v
 	      (funcall (get symb 'get-register) v)
 	      )))
-
+    
     (setf (get symb 'pop_to_list) 
 	  (lambda (nb_arg) 
 	    (if (equal 0 nb_arg)
@@ -75,34 +75,41 @@
     
 
     (setf (get symb 'labels) (list_assoc_make))
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    (setf (get symb 'file) "file.txt");;Change to function args!
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+    (setf (get symb 'file) filename)
+
     (let* ((flow (open (get symb 'file)));;we could add the error handling
-	  (nb-label (parse-integer (read-line flow)));;here too
-	  (code-size (parse-integer (read-line flow)));;here too
-	  (num-label 0)
-	  (num-instruct 1))
-      (setf (get symb 'memory-size) (+ code-size STACK_SIZE HEAP_SIZE))
+	   (line (read flow))
+	   (num-instruct 1))
+      
+      (setf (get symb 'memory-size) (+ STACK_SIZE HEAP_SIZE))
+
       (setf (get symb 'MEM) (make-array (get symb 'memory-size)))
-      (loop while (< num-label nb-label)
+      
+      (loop while (not (equal line '(HALT)));to do memory-size-1 at the start, so no out of bound
 	    do
-	    (let ((lab (read flow)))
-	      (progn (setf (get symb 'labels) (list_assoc_add (get symb 'labels) (cadr lab) (caddr lab)))
-		     (setf num-label (+ num-label 1))
-		     )))
-      (loop while (<= num-instruct code-size);to do memory-size-1 at the start, so no out of bound
-	    do
+	    ;;(print (- (get symb 'memory-size) num-instruct))
+	    ;;(print line)
 	    (funcall (get symb 'set-addr)
 		     (- (get symb 'memory-size) num-instruct)
-		     (read flow))
+		     line)
+	    
+	    (if (equal (car line) 'LABEL)
+		(progn (if (equal (cadr line) 'MAIN)
+			   (setf (get symb 'PC) (- (get symb 'memory-size) num-instruct 1)))
+		       (setf (get symb 'labels) (list_assoc_add (get symb 'labels) (cadr line) (- (get symb 'memory-size) num-instruct)))))
+
+	    (setf line (read flow))
 	    (setf num-instruct (+ num-instruct 1)))
+      (funcall (get symb 'set-addr)
+	       (- (get symb 'memory-size) num-instruct)
+	       line)
       (close flow)
       )
     
     
     (setf (get symb 'BP) 0);no variable for now.
-
+    
     (setf (get symb 'SP) 0)
     (setf (get symb 'FP) 0)
 
@@ -112,7 +119,7 @@
     ;;(setf (get symb 'RA) nil)
     (setf (get symb 'FLG) nil)
     
-    (setf (get symb 'PC) MAIN_ADRESS)
+    ;;(setf (get symb 'PC) MAIN_ADRESS)
 
     ;Public func
     ;;register operation 
@@ -127,12 +134,12 @@
 	  (lambda (addr R)
 	    (funcall (get symb 'set-register)
 		     R 
-		     (get symb 'get-addr) (literalOrRegister addr))))
+		     (get symb 'get-addr (funcall (get symb 'literalOrRegister) addr)))))
   
     (setf (get symb 'STORE) 
 	  (lambda  (reg addr)
 	    (funcall (get symb 'set-addr) 
-		     (literalOrRegister addr)
+		     (funcall (get symb 'literalOrRegister) addr)
 		     (funcall (get symb 'get-register) reg))))
 
     (setf (get symb 'ADD) 
@@ -164,23 +171,24 @@
 		 (/ (funcall (get symb 'get-register) target) (funcall (get symb 'get-register) dest))))))
     
     (setf (get symb 'PUSH)
-	  (lambda  (R value)
+	  (lambda  (R)
 	    (progn 
 	      (funcall (get symb 'set-register) 
 		       'SP 
 		       (+ (funcall (get symb 'get-register) 'SP) 1))
 	      (funcall (get symb 'set-addr)
 			    (funcall (get symb 'get-register) 'SP)
-			    value))))
+			    (funcall (get symb 'get-register) R))
+			    )))
 
     
     (setf (get symb 'POP) 
 	  (lambda (R)
 	    (progn
-		(funcall (get symb 'set-register) 
-			 R
-			 (funcall (get symb 'get-addr) 
-				  (funcall (get symb 'get-register) 'SP)))
+	      (funcall (get symb 'set-register) 
+		       R
+		       (funcall (get symb 'get-addr)
+				(funcall (get symb 'get-register) 'SP)))
 	      (funcall (get symb 'set-register)
 		       'SP 
 		       (- (funcall (get symb 'get-register) 'SP) 1)))))
@@ -194,43 +202,47 @@
 		(funcall (get symb 'set-register) 'FLG DPP))))); R1 < R2 
     
     (setf (get symb 'JPG) 
-	  (lambda (etiq)
+	  (lambda (label)
 	    (if (equal (funcall (get symb 'get-register) 'FLG) DPG)
-		(funcall (get symb 'JMP) etiq))))
+		(funcall (get symb 'JMP) label))))
     
     (setf (get symb 'JEQ) 
-	  (lambda (etiq)
+	  (lambda (label)
 	    (if (equal (funcall (get symb 'get-register) 'FLG) DEQ)
-		(funcall (get symb 'JMP) etiq))))
+		(funcall (get symb 'JMP) label))))
     
     (setf (get symb 'JPP ) 
-	  (lambda (etiq)
+	  (lambda (label)
 	    (if (equal (funcall (get symb 'get-register) 'FLG) DPP)
-		(funcall (get symb 'JMP) etiq))))
+		(funcall (get symb 'JMP) label))))
 
     (setf (get symb 'JGE) 
-	  (lambda (etiq)
+	  (lambda (label)
 	    (if (or (equal (funcall (get symb 'get-register) 'FLG) DPG) (equal (funcall (get symb 'get-register) 'FLG) DEQ))
-		(funcall (get symb 'JMP) etiq))))
+		(funcall (get symb 'JMP) label))))
     
     (setf (get symb 'JPE) 
-	  (lambda (etiq)
+	  (lambda (label)
 	    (if (or (equal (funcall (get symb 'get-register) 'FLG) DPE) (equal (funcall (get symb 'get-register) 'FLG) DEQ))
-		(funcall (get symb 'JMP) etiq))))
+		(funcall (get symb 'JMP) label))))
     
     (setf (get symb 'JMP) 
-	  (lambda (etiq)
+	  (lambda (label)
 	    (funcall (get symb 'set-register)
-		     PC 
-		     (+ 1 etiq))))
-
+		     'PC
+		     (let ((l (list_assoc_search (get symb 'labels) label)))
+			      (if (null l)
+				  (error "~s function doesn't exist in this compiled code !" label)
+				(cdr l)
+				)))))
+		     	    
     (setf (get symb 'JSR) 
-	  (lambda (etiq)
+	  (lambda (label)
 	    (funcall (get symb 'PUSH) (funcall (get symb 'get-register) 'PC));push
-	    (funcall (get symb 'JMP) (literalOrRegister etiq))))
+	    (funcall (get symb 'JMP) label)))
 
     (setf (get symb 'RTN)
-	  (lambda (etiq)
+	  (lambda ()
 	    (funcall (get symb 'POP)
 		     'PC)))
     
@@ -258,9 +270,14 @@
 		     dest
 		     (cdr (funcall (get symb 'get-register) target)))))
 
-    (setf (get symb 'PRIMIVITE)
+    (setf (get symb 'PRIMITIVE)
 	  (lambda (funcname nb_arg)
-	    (set-register 'R0 (apply funcname (funcall (get symb 'pop_to_list) nb_arg)))
+	     ;;(progn
+	      ;; (print funcname)
+	      ;; (print nb_arg)
+	      (funcall (get symb 'set-register) 
+		       'R0 
+		       (apply funcname (funcall (get symb 'pop_to_list) nb_arg)))
 	    ))
     
     (setf (get symb 'run)
@@ -269,21 +286,22 @@
 	      (loop while (not (equal (car instruct) 'HALT))
 		    do
 		    (print instruct)
-		    (funcall (get vm 'print-property) (cadr instruct))
-		    (funcall (get vm 'print-property) (caddr instruct))
+		    ;(funcall (get vm 'print-property) (cadr instruct))
+		    ;(funcall (get vm 'print-property) (caddr instruct))
 		    (case (Length instruct)
 		      ((1) (funcall (get symb (car instruct))))
 		      ((2) (if (get symb (car instruct)) 
 			       (funcall (get symb (car instruct)) (cadr instruct))
-			     (funcall (get symb 'PRIMIVITE) (car instruct) (cadr instruct))))
+			     (funcall (get symb 'PRIMITIVE) (car instruct) (cadr instruct))))
 		      ((3) (funcall (get symb (car instruct)) (cadr instruct) (caddr instruct))))
 		      
 		    (funcall (get symb 'set-register) 'PC (- (funcall (get symb 'get-register) 'PC) 1))
 		    (setf instruct (funcall (get symb 'get-addr) (get symb 'PC)))))))
+
     ))
 
 
-(setf vm (make-vm 'VM "VM0"))
+(setf vm (make-vm 'VM "VM0" "fibo.livm"))
 
 
 ;; (funcall (get vm 'print-property) 'R1)
@@ -293,9 +311,13 @@
 ;; (funcall (get vm 'print-property) 'R2)
 
 ;(funcall (get vm 'print-property) 'labels)
-(funcall (get vm 'print-property) 'memory-size)
+
+(funcall (get vm 'print-memory))
+(funcall (get vm 'print-property) 'labels)
+
+;;(funcall (get vm 'print-property) 'PC)
 (funcall (get vm 'run))
 
 
-(funcall (get vm 'print-property) 'R1)
-(funcall (get vm 'print-property) 'R2)
+;;(funcall (get vm 'print-property) 'R1)
+;;(funcall (get vm 'print-property) 'R2)
