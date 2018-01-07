@@ -77,7 +77,10 @@
 		   (if (not (null (cadddr expr)))
 		       (append (list (list 'JMP end)
 				     (list 'LABEL else))
-			       (step1 (cadddr expr) env funcnames)))
+			       (step1 (cadddr expr) env funcnames)
+			       (list (list 'JMP end))
+			       )
+		     )
 		   (list (list 'LABEL end)))))))
 
      ((equal (car expr) 'defun)
@@ -98,19 +101,20 @@
 	;;(print "funcall")
 	(append (compile-args (cdr expr) env funcnames);funcall
 		(if (list_assoc_search funcnames (car expr));user define func		
-		    (list (list 'MOVE (- (length expr) 1) 'R0)
-			  '(PUSH R0)
-			  '(MOVE FP R1)
-			  '(MOVE SP FP)
-			  '(MOVE SP R2)
-			  (list 'SUB (length expr) 'R2);Enleve n+1 arguments
-			  '(PUSH R2)
-			  '(PUSH R1)
-			  (list 'JSR (car expr))
-			  '(POP R1)
-			  '(POP R2)
-			  '(MOVE R1 FP)
-			  '(MOVE R2 SP))
+		    (list 
+		     '(MOVE FP R1)		     
+		     '(MOVE SP FP)
+		     (list 'MOVE (- (length expr) 1) 'R0)
+		     '(PUSH R0)
+		     '(MOVE SP R2)
+		     (list 'SUB (length expr) 'R2);Enleve n+1 arguments
+		     '(PUSH R2)
+		     '(PUSH R1)
+		     (list 'JSR (car expr))
+		     '(POP R1)
+		     '(POP R2)
+		     '(MOVE R1 FP)
+		     '(MOVE R2 SP))
 		  (list (list (car expr) (- (length expr) 1)))
 		  ))))
       

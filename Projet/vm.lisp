@@ -1,8 +1,7 @@
 (load "assoclist.lisp")
 
-(setf STACK_SIZE 150) ;temp, till we actually load things and stuff
+(setf STACK_SIZE 300) ;temp, till we actually load things and stuff
 (setf HEAP_SIZE 0)
-(setf MAIN_ADRESS 49) ;adress of the first instruction to eval
 (setf DPG 1)
 (setf DEQ 0)
 (setf DPP -1)
@@ -132,9 +131,13 @@
     
     (setf (get symb 'LOAD) 
 	  (lambda (addr R)
-	    (funcall (get symb 'set-register)
-		     R 
-		     (funcall (get symb 'get-addr) (funcall (get symb 'literalOrRegister) addr)))))
+	    (progn 
+	      ;;(print addr)
+	      ;;(print R)
+	      (funcall (get symb 'set-register)
+		       R 
+		       (funcall (get symb 'get-addr) (funcall (get symb 'literalOrRegister) addr)))
+	      (print (funcall (get symb 'get-register) (funcall (get symb 'literalOrRegister) addr))))))
   
     (setf (get symb 'STORE) 
 	  (lambda  (reg addr)
@@ -152,9 +155,11 @@
     
     (setf (get symb 'SUB) 
 	  (lambda (target dest)
-	    (funcall (get symb 'get-register) dest) 
-		  (- (funcall (get symb 'literalOrRegister) target) 
-		     (funcall (get symb 'get-register) dest))))
+	    (funcall (get symb 'set-register) 
+		     dest
+		     (- 		      
+		      (funcall (get symb 'get-register) dest)
+		      (funcall (get symb 'literalOrRegister) target)))))
 
     (setf (get symb 'MUL) 
 	  (lambda (target dest)
@@ -173,8 +178,8 @@
     (setf (get symb 'PUSH)
 	  (lambda  (R)
 	    (progn
-	      (print (funcall (get symb 'get-register) 'SP))
-	      (print (funcall (get symb 'get-register) R))
+	      ;;(print (funcall (get symb 'get-register) 'SP))
+	      ;;(print (funcall (get symb 'get-register) R))
 	      (funcall (get symb 'set-addr)
 		       (funcall (get symb 'get-register) 'SP)
 		       (funcall (get symb 'get-register) R))
@@ -198,11 +203,19 @@
     
     (setf (get symb 'CMP)
 	  (lambda (R1 R2); check if the order of the flag is ok
-	    (if (equal (funcall (get symb 'get-register) R1) (funcall (get symb 'get-register) R2))
-		(funcall (get symb 'set-register) 'FLG DEQ);R1==R2
-	      (if (> (funcall (get symb 'get-register) R1) (funcall (get symb 'get-register) R2))
-		  (funcall (get symb 'set-register) 'FLG DPG); R1 > R2
-		(funcall (get symb 'set-register) 'FLG DPP))))); R1 < R2 
+	    (progn
+	      ;; (funcall (get symb 'print-property) R1)
+	      ;; (funcall (get symb 'print-property) R2)
+	      (if (or (null (funcall (get symb 'literalOrRegister) R1))
+		      (null (funcall (get symb 'literalOrRegister) R2)))
+		  (if (eq (funcall (get symb 'literalOrRegister) R1) (funcall (get symb 'literalOrRegister) R2))
+		      (funcall (get symb 'set-register) 'FLG DEQ);R1==R2
+		    (funcall (get symb 'set-register) 'FLG DPG));R1!=R2
+		(if (eq (funcall (get symb 'literalOrRegister) R1) (funcall (get symb 'get-register) R2))
+		    (funcall (get symb 'set-register) 'FLG DEQ);R1==R2
+		  (if (> (funcall (get symb 'literalOrRegister) R1) (funcall (get symb 'get-register) R2))
+		      (funcall (get symb 'set-register) 'FLG DPG); R1 > R2
+		    (funcall (get symb 'set-register) 'FLG DPP))))))); R1 < R2 
     
     (setf (get symb 'JPG) 
 	  (lambda (label)
@@ -276,13 +289,21 @@
 
     (setf (get symb 'PRIMITIVE)
 	  (lambda (funcname nb_arg)
-	     ;;(progn
-	      ;; (print funcname)
-	      ;; (print nb_arg)
-	      (funcall (get symb 'set-register) 
+	    (progn
+	      ;;(print funcname)
+	      ;;(print nb_arg)
+	      (funcall (get symb 'set-register)
 		       'R0 
-		       (apply funcname (funcall (get symb 'pop_to_list) nb_arg)))
-	    ))
+		       (apply funcname (reverse (funcall (get symb 'pop_to_list) nb_arg))))
+	      
+	      ;;(funcall (get symb 'print-memory))
+	      )))
+
+    (setf (get symb 'PRINT)
+	  (lambda ()
+	    (print (funcall (get symb 'get-register) 'R0))
+	    ));isn't really needed
+
     
     (setf (get symb 'run)
 	  (lambda ()
@@ -290,8 +311,8 @@
 	      (loop while (not (equal (car instruct) 'HALT))
 		    do
 		    (print instruct)
-		    ;(funcall (get vm 'print-property) (cadr instruct))
-		    ;(funcall (get vm 'print-property) (caddr instruct))
+		    ;;(funcall (get vm 'print-property) (cadr instruct))
+		    ;;(funcall (get vm 'print-property) (caddr instruct))
 		    (case (Length instruct)
 		      ((1) (funcall (get symb (car instruct))))
 		      ((2) (if (get symb (car instruct)) 
@@ -305,16 +326,16 @@
     ))
 
 
-(setf vm (make-vm 'VM "VM0" "fibo.livm"))
+(setf vm (make-vm 'VM "VM0" "f.lvm"))
 
 
 ;; (funcall (get vm 'print-property) 'R1)
 ;; (funcall (get vm 'print-property) 'R2)
-;; (funcall (get vm 'MOVE) 'R2 'R1)
+;; (funcall (get vm 'SUB) 3 'R1)
 ;; (funcall (get vm 'print-property) 'R1)
 ;; (funcall (get vm 'print-property) 'R2)
 
-;(funcall (get vm 'print-property) 'labels)
+;(funcall (get vm 'print-property) 'label)
 
 (funcall (get vm 'print-memory))
 (funcall (get vm 'print-property) 'labels)
