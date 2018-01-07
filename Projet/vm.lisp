@@ -134,7 +134,7 @@
 	  (lambda (addr R)
 	    (funcall (get symb 'set-register)
 		     R 
-		     (get symb 'get-addr (funcall (get symb 'literalOrRegister) addr)))))
+		     (funcall (get symb 'get-addr) (funcall (get symb 'literalOrRegister) addr)))))
   
     (setf (get symb 'STORE) 
 	  (lambda  (reg addr)
@@ -172,26 +172,29 @@
     
     (setf (get symb 'PUSH)
 	  (lambda  (R)
-	    (progn 
+	    (progn
+	      (print (funcall (get symb 'get-register) 'SP))
+	      (print (funcall (get symb 'get-register) R))
+	      (funcall (get symb 'set-addr)
+		       (funcall (get symb 'get-register) 'SP)
+		       (funcall (get symb 'get-register) R))
 	      (funcall (get symb 'set-register) 
 		       'SP 
 		       (+ (funcall (get symb 'get-register) 'SP) 1))
-	      (funcall (get symb 'set-addr)
-			    (funcall (get symb 'get-register) 'SP)
-			    (funcall (get symb 'get-register) R))
-			    )))
+	      )))
 
     
     (setf (get symb 'POP) 
 	  (lambda (R)
 	    (progn
+	      (funcall (get symb 'set-register)
+		       'SP 
+		       (- (funcall (get symb 'get-register) 'SP) 1))
 	      (funcall (get symb 'set-register) 
 		       R
 		       (funcall (get symb 'get-addr)
 				(funcall (get symb 'get-register) 'SP)))
-	      (funcall (get symb 'set-register)
-		       'SP 
-		       (- (funcall (get symb 'get-register) 'SP) 1)))))
+	      )))
     
     (setf (get symb 'CMP)
 	  (lambda (R1 R2); check if the order of the flag is ok
@@ -233,12 +236,13 @@
 		     (let ((l (list_assoc_search (get symb 'labels) label)))
 			      (if (null l)
 				  (error "~s function doesn't exist in this compiled code !" label)
-				(cdr l)
+			        (cdr l)
 				)))))
 		     	    
     (setf (get symb 'JSR) 
 	  (lambda (label)
-	    (funcall (get symb 'PUSH) (funcall (get symb 'get-register) 'PC));push
+	    (funcall (get symb 'PUSH) ;(funcall (get symb 'get-register)
+		     'PC);push return adress
 	    (funcall (get symb 'JMP) label)))
 
     (setf (get symb 'RTN)

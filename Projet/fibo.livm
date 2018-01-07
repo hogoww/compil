@@ -1,5 +1,4 @@
-((LABEL FIBO)
-(MOVE FP R0)  ;;compile-args (= n 0)
+(LABEL FIBO)(MOVE FP R0)  ;;compile-args (= n 0)
 (SUB 1 R0)
 (LOAD R0 R0)
 (PUSH R0)     ;;pile n  
@@ -85,4 +84,4 @@
 (MOVE R1 FP)
 (MOVE R2 SP)
 (PRINT)     ;;print l'instruction
-(HALT))     ;;arret machine
+(HALT)     ;;arret machine
