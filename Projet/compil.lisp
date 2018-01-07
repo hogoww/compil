@@ -159,6 +159,7 @@
 ;; 			     '())))
 
 
+(with-open-file (str "./newFile.txt" :direction :output :if-exists :supersede :if-does-not-exist :create)(format nil "~a" (compile-fichier "fibo.lisp")))
 (print (compile-fichier "fibo.lisp"))
 
 ;(print (step1 '(defun f '() 5) '() '()))
