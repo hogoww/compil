@@ -159,7 +159,9 @@
 ;; 			     '())))
 
 
-(with-open-file (str "./newFile.txt" :direction :output :if-exists :supersede :if-does-not-exist :create)(format nil "~a" (compile-fichier "fibo.lisp")))
+(with-open-file (str "./newFile.txt" :direction :output :if-exists :supersede :if-does-not-exist :create)(let ((var (compile-fichier "fibo.lisp")))(loop while var do(progn(format str "~S" (car var))(setf var (cdr var))))))
+
+
 (print (compile-fichier "fibo.lisp"))
 
 ;(print (step1 '(defun f '() 5) '() '()))
