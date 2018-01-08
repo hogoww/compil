@@ -173,7 +173,7 @@
 	       dest
 	       (if (equal (funcall (get symb 'get-register) dest) 0)
 		   (error "error div by 0")
-		 (/ (funcall (get symb 'get-register) dest) (funcall (get symb 'get-register) target))))))
+		 (/ (funcall (get symb 'get-register) target) (funcall (get symb 'get-register) dest))))))
     
     (setf (get symb 'PUSH)
 	  (lambda  (R)
