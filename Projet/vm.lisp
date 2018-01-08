@@ -170,10 +170,10 @@
     (setf (get symb 'DIV)
 	  (lambda (target dest)
 	    (funcall (get symb 'set-register) 
-	       dest
-	       (if (equal (funcall (get symb 'get-register) dest) 0)
-		   (error "error div by 0")
-		 (/ (funcall (get symb 'get-register) dest) (funcall (get symb 'get-register) target))))))
+		     dest
+		     (if (equal (funcall (get symb 'get-register) dest) 0)
+			 (error "error div by 0")
+		       (/ (funcall (get symb 'get-register) dest) (funcall (get symb 'get-register) target))))))
     
     (setf (get symb 'PUSH)
 	  (lambda  (R)

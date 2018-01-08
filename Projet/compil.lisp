@@ -159,29 +159,27 @@
 ;; 			     '())))
 
 
-(with-open-file (str "./newFile.txt" :direction :output :if-exists :supersede :if-does-not-exist :create)(let ((var (compile-fichier "fibo.lisp")))(loop while var do(progn(format str "~S" (car var))(setf var (cdr var))))))
+(defun write-compiled-file (filename newfilename)
+  (with-open-file 
+   (str newfilename
+	:direction :output 
+	:if-exists :supersede 
+	:if-does-not-exist 
+	:create)
+   (let ((var (print (compile-fichier filename))))
+     (loop while
+	   var
+	   do 
+	   (progn
+	     (format str "~S" (car var))
+	     (setf var (cdr var)))))))
 
 
-(print (compile-fichier "fibo.lisp"))
-
-;(print (step1 '(defun f '() 5) '() '()))
-
-
-
-;; ;(with-open-file (str "./file.lispvm"
-;;                      :direction :output
-;;                      :if-exists :supersede
-;;                      :if-does-not-exist :create)
-		
-;; 		(format str ))
-
-;; (defun write-code-vm (file code)
-;;   (write-code-vm-rec (open file :if-does-not-exist :create) code))
-
-;; (defun write-code-vm-rec (file code)
-;;   (if (null code)
-;;       (close file)
-;;     (progn (write file (car code))
-;; 	   (write-code-vm-rec (cdr code)))))
-
-;; (write-code-vm "compil.lvm" (cdr z))
+(defun launch-compilation () 
+  (print "Quel fichier voulez vous compiler?")
+  (write-compiled-file (read) 
+		       (progn 
+			 (print "Dans quel fichier voulez vous mettre le code compilé?")
+			 (read))))
+  
+(launch-compilation)
