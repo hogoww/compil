@@ -1,4 +1,0 @@
-(LABEL MAIN)
-(MOVE R1 R2)
-(ADD R1 R2)
-(HALT)

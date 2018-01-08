@@ -12,7 +12,7 @@
     (setf (get symb 'VM) symb)
     (setf (get symb 'name) name)    
 
-    ;Print what the vm contains
+    ;;Print what the vm contains
     (setf (get symb 'print-vm);Will print the memory too, which ain't that good...
 	  (lambda ()
 	    (print (symbol-plist symb))))
@@ -27,7 +27,7 @@
 	    (prog1 (print (get symb prop))
 	      (print prop))))
 
-    ;private func
+    ;;private func
     (setf (get symb 'get-register)
 	  (lambda (prop)
 	    (get symb prop)))
@@ -137,7 +137,7 @@
 	      (funcall (get symb 'set-register)
 		       R 
 		       (funcall (get symb 'get-addr) (funcall (get symb 'literalOrRegister) addr)))
-	      (print (funcall (get symb 'get-register) (funcall (get symb 'literalOrRegister) addr))))))
+	      (funcall (get symb 'get-register) (funcall (get symb 'literalOrRegister) addr)))))
   
     (setf (get symb 'STORE) 
 	  (lambda  (reg addr)
@@ -302,7 +302,7 @@
     (setf (get symb 'PRINT)
 	  (lambda ()
 	    (print (funcall (get symb 'get-register) 'R0))
-	    ));isn't really needed
+	    ))
 
     
     (setf (get symb 'run)

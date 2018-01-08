@@ -115,11 +115,52 @@
 		     '(POP R2)
 		     '(MOVE R1 FP)
 		     '(MOVE R2 SP))
-		  (list (list (car expr) (- (length expr) 1)))
-		  ))))
+		  (if (equal (car expr) '+);;operator+
+		      (append 
+		       (list 
+			'(POP R1)
+			'(POP R0)
+			'(ADD R1 R0))
+		       (compile-op 'ADD (- (length expr) 3)));;minus the 3 arguments (+ x y), only generate anything if operator is used as a variadic operator
+
+		  (if (equal (car expr) '-);;operator-
+		      (append 
+		       (list 
+			'(POP R1)
+			'(POP R0)
+			'(SUB R1 R0))
+		       (compile-op 'SUB (- (length expr) 3)));;minus the 3 arguments (+ x y), only generate anything if operator is used as a variadic operator
+
+		  (if (equal (car expr) '*);;operator*
+		      (append 
+		       (list 
+			'(POP R1)
+			'(POP R0)
+			'(SUB R1 R0))
+		       (compile-op 'MUL (- (length expr) 3)));;minus the 3 arguments (+ x y), only generate anything if operator is used as a variadic operator
+
+		  (if (equal (car expr) '/);;operator/
+		      (append 
+		       (list 
+			'(POP R1)
+			'(POP R0)
+			'(SUB R1 R0))
+		       (compile-op 'DIV (- (length expr) 3)));;minus the 3 arguments (+ x y), only generate anything if operator is used as a variadic operator
+		  
+		  
+		  
+		    (list (list (car expr) (- (length expr) 1)));;we allow that a function isn't defined in the lisp vm but will be at runtime.
+		  ))))))))
       
      )))
-  
+
+(defun compile-op (op nb-arg)
+  (if (equal nb-arg 0)
+      nil
+    (append (list '(POP R1)
+		  (list op 'R1 'R0))
+		  (compile-op op (- nb-arg 1)))))
+
 
 (defun compile-func (list definedfunc) 
   (if (null list)
@@ -181,5 +222,6 @@
 		       (progn 
 			 (print "Dans quel fichier voulez vous mettre le code compilé?")
 			 (read))))
-  
-(launch-compilation)
+
+(write-compiled-file "fibo.lisp" "f.lvm") 
+;;(launch-compilation)
