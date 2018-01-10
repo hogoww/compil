@@ -103,8 +103,9 @@
       (funcall (get symb 'set-addr)
 	       (- (get symb 'memory-size) num-instruct)
 	       line)
+      (setf (get symb 'MAX_STACK) (- (get symb 'memory-size) num-instruct 1))
+      ;;(print (funcall (get symb 'get-addr) (get symb 'MAX_STACK)))
       (close flow)
-      (setf (get symb 'code_size) num-instruct)
       )
     
     
@@ -142,9 +143,16 @@
   
     (setf (get symb 'STORE) 
 	  (lambda  (reg addr)
-	    (funcall (get symb 'set-addr) 
-		     (funcall (get symb 'literalOrRegister) addr)
-		     (funcall (get symb 'get-register) reg))))
+	    ;; (progn
+	    ;; 	(funcall (get symb 'print-memory))
+	    ;; 	(print (funcall (get symb 'literalOrRegister) addr))
+	    ;; 	(print (funcall (get symb 'get-register) reg))
+	    ;; 	(prog1
+		    (funcall (get symb 'set-addr)
+			       (funcall (get symb 'literalOrRegister) addr)
+			       (funcall (get symb 'get-register) reg))
+		    ;; (funcall (get symb 'print-memory))
+		    ))
 
     (setf (get symb 'ADD) 
 	  (lambda (target dest)
@@ -177,34 +185,35 @@
 		       (/ (funcall (get symb 'get-register) dest) (funcall (get symb 'get-register) target))))))
     
     (setf (get symb 'PUSH)
-	  (if (>= (- (get symb 'code_size) (get symb 'memory-size)) (funcall (get symb 'get-register) 'SP))
-	       (error "Stack overflow detected, your program will now stop")
-	  (lambda  (R)
-	    (progn
-	      ;;(print (funcall (get symb 'get-register) 'SP))
-	      ;;(print (funcall (get symb 'get-register) R))
-	      (funcall (get symb 'set-addr)
-		       (funcall (get symb 'get-register) 'SP)
-		       (funcall (get symb 'get-register) R))
-	      (funcall (get symb 'set-register) 
-		       'SP 
-		       (+ (funcall (get symb 'get-register) 'SP) 1))
-	      ))))
-
+	    (lambda  (R)
+	      (if (> (funcall (get symb 'get-register) 'SP)
+		     (get symb 'MAX_STACK))
+		  (error "Stack overflow.")
+		(progn
+		  ;;(print (funcall (get symb 'get-register) 'SP))
+		  ;;(print (funcall (get symb 'get-register) R))
+		  (funcall (get symb 'set-addr)
+			   (funcall (get symb 'get-register) 'SP)
+			   (funcall (get symb 'get-register) R))
+		  (funcall (get symb 'set-register) 
+			   'SP 
+			   (+ (funcall (get symb 'get-register) 'SP) 1))
+		  ))))
     
     (setf (get symb 'POP)
-	  (if (< (funcall (get symb 'get-register) 'BP)(funcall (get symb 'get-register) 'SP))
-	      (error "Stack underflow detected, your program will now stop")
 	  (lambda (R)
-	    (progn
-	      (funcall (get symb 'set-register)
-		       'SP 
-		       (- (funcall (get symb 'get-register) 'SP) 1))
-	      (funcall (get symb 'set-register) 
-		       R
-		       (funcall (get symb 'get-addr)
-				(funcall (get symb 'get-register) 'SP)))
-	      ))))
+	    (if (>= (funcall (get symb 'get-register) 'BP)
+		   (funcall (get symb 'get-register) 'SP))
+		(error "Stack underflow.")
+	      (progn
+		(funcall (get symb 'set-register)
+			 'SP 
+			 (- (funcall (get symb 'get-register) 'SP) 1))
+		(funcall (get symb 'set-register) 
+			 R
+			 (funcall (get symb 'get-addr)
+				  (funcall (get symb 'get-register) 'SP)))
+		))))
     
     (setf (get symb 'CMP)
 	  (lambda (R1 R2); check if the order of the flag is ok
@@ -342,11 +351,11 @@
 
 ;(funcall (get vm 'print-property) 'label)
 
-(funcall (get vm 'print-memory))
 (funcall (get vm 'print-property) 'labels)
 
 ;;(funcall (get vm 'print-property) 'PC)
 (funcall (get vm 'run))
+(funcall (get vm 'print-memory))
 
 
 ;;(funcall (get vm 'print-property) 'R1)

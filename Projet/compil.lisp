@@ -28,7 +28,7 @@
 (defun compile-args (list-arg env funcnames)
   (if (null list-arg)
       nil
-    (append (step1 (car list-arg) env funcnames)
+    (append (step1 (car list-arg) env funcnames nil)
 	    (list '(PUSH R0))
 	    (compile-args (cdr list-arg) env funcnames))))
 
@@ -38,7 +38,7 @@
     (cons (cons (car list-arg) nb-arg) (make-env (cdr list-arg) (- nb-arg 1)))))
 
 
-(defun step1 (expr env funcnames)
+(defun step1 (expr env funcnames currentFunc);; currentFunc is the name of the function we're currently defining if it's eligible for terminal compilation
   (progn
     ;;(print expr)
     (cond 
@@ -62,7 +62,7 @@
 	;; (print (cadr expr))
 	;; (print (caddr expr))
 	;; (print (cadddr expr))
-	(append (step1 (cadr expr) env funcnames)
+	(append (step1 (cadr expr) env funcnames nil)
 		(list '(CMP R0 nil))
 		(let ((else (next_label))
 		      (end (next_label)))
@@ -72,12 +72,12 @@
 		    (if (not (null (cadddr expr)))
 			(list 'JEQ else)
 		      (list 'JEQ end)))
-		   (step1 (caddr expr) env funcnames)
+		   (step1 (caddr expr) env funcnames currentFunc)
 		   
 		   (if (not (null (cadddr expr)))
 		       (append (list (list 'JMP end)
 				     (list 'LABEL else))
-			       (step1 (cadddr expr) env funcnames)
+			       (step1 (cadddr expr) env funcnames currentFunc)
 			       (list (list 'JMP end))
 			       )
 		     )
@@ -91,7 +91,9 @@
 	  (append (list (list 'LABEL (cadr expr)))
 		  (step1 (cadddr expr) 
 			 (make-env (caddr expr) (length (caddr expr)))
-			 funcnames)
+			 funcnames
+			 (cadr expr)
+			 )
 		  (list '(RTN))))))
      
      ;;Ajouter un cas QUOTE 
@@ -100,59 +102,81 @@
       (progn 
 	;;(print "funcall")
 	(append (compile-args (cdr expr) env funcnames);funcall
-		(if (list_assoc_search funcnames (car expr));user define func		
-		    (list 
-		     '(MOVE FP R1)		     
-		     '(MOVE SP FP)
-		     (list 'MOVE (- (length expr) 1) 'R0)
-		     '(PUSH R0)
-		     '(MOVE SP R2)
-		     (list 'SUB (length expr) 'R2);Enleve n+1 arguments
-		     '(PUSH R2)
-		     '(PUSH R1)
-		     (list 'JSR (car expr))
-		     '(POP R1)
-		     '(POP R2)
-		     '(MOVE R1 FP)
-		     '(MOVE R2 SP))
-		  (if (equal (car expr) '+);;operator+
-		      (append 
-		       (list 
-			'(POP R1)
-			'(POP R0)
-			'(ADD R1 R0))
-		       (compile-op 'ADD (- (length expr) 3)));;minus the 3 arguments (+ x y), only generate anything if operator is used as a variadic operator
+		(if (eq (car expr)
+			currentFunc);;eligible for terminal recursivity
+		    (progn 
+		      ;;(print "pouet")
+		      (append
+		       (compile-terminal-recursivity 1 (length expr));;nbarg+1
+		       (list (list 'JMP (car expr)))
+		       ))
+		     
+		     (if (list_assoc_search funcnames (car expr));user define func		
+			 (list 
+			  '(MOVE FP R1)		     
+			  '(MOVE SP FP)
+			  (list 'MOVE (- (length expr) 1) 'R0)
+			  '(PUSH R0)
+			  '(MOVE SP R2)
+			  (list 'SUB (length expr) 'R2);Enleve n+1 arguments
+			  '(PUSH R2)
+			  '(PUSH R1)
+			  (list 'JSR (car expr))
+			  '(POP R1)
+			  '(POP R2)
+			  '(MOVE R1 FP)
+			  '(MOVE R2 SP))
+		       (if (equal (car expr) '+);;operator+
+			   (append 
+			    (list 
+			     '(POP R1)
+			     '(POP R0)
+			     '(ADD R1 R0))
+			    (compile-op 'ADD (- (length expr) 3)));;minus the 3 arguments (+ x y), only generate anything if operator is used as a variadic operator
 
-		  (if (equal (car expr) '-);;operator-
-		      (append 
-		       (list 
-			'(POP R1)
-			'(POP R0)
-			'(SUB R1 R0))
-		       (compile-op 'SUB (- (length expr) 3)));;minus the 3 arguments (+ x y), only generate anything if operator is used as a variadic operator
+			 (if (equal (car expr) '-);;operator-
+			     (append 
+			      (list 
+			       '(POP R1)
+			       '(POP R0)
+			       '(SUB R1 R0))
+			      (compile-op 'SUB (- (length expr) 3)));;minus the 3 arguments (+ x y), only generate anything if operator is used as a variadic operator
 
-		  (if (equal (car expr) '*);;operator*
-		      (append 
-		       (list 
-			'(POP R1)
-			'(POP R0)
-			'(SUB R1 R0))
-		       (compile-op 'MUL (- (length expr) 3)));;minus the 3 arguments (+ x y), only generate anything if operator is used as a variadic operator
+			   (if (equal (car expr) '*);;operator*
+			       (append 
+				(list 
+				 '(POP R1)
+				 '(POP R0)
+				 '(MUL R1 R0))
+				(compile-op 'MUL (- (length expr) 3)));;minus the 3 arguments (+ x y), only generate anything if operator is used as a variadic operator
 
-		  (if (equal (car expr) '/);;operator/
-		      (append 
-		       (list 
-			'(POP R1)
-			'(POP R0)
-			'(SUB R1 R0))
-		       (compile-op 'DIV (- (length expr) 3)));;minus the 3 arguments (+ x y), only generate anything if operator is used as a variadic operator
-		  
-		  
-		  
-		    (list (list (car expr) (- (length expr) 1)));;we allow that a function isn't defined in the lisp vm but will be at runtime.
-		  ))))))))
+			     (if (equal (car expr) '/);;operator/
+				 (append 
+				  (list 
+				   '(POP R1)
+				   '(POP R0)
+				   '(DIV R1 R0))
+				  (compile-op 'DIV (- (length expr) 3)));;minus the 3 arguments (+ x y), only generate anything if operator is used as a variadic operator
+			       
+			       
+			       
+			       (list (list (car expr) (- (length expr) 1)));;we allow that a function isn't defined in the lisp vm but will be at runtime.
+			       )))))))))
       
      )))
+
+(defun compile-terminal-recursivity 
+  (numArg nbArg)
+  (if (= numArg nbArg)
+      nil
+    (append (list 
+	     '(POP R0)
+	     '(MOVE FP R1)
+	     (list 'SUB numArg 'R1)
+	     '(STORE R0 R1))
+	    (compile-terminal-recursivity (+ numArg 1) nbArg)
+	    )))
+    
 
 (defun compile-op (op nb-arg)
   (if (equal nb-arg 0)
@@ -165,14 +189,14 @@
 (defun compile-func (list definedfunc) 
   (if (null list)
       nil
-    (append (step1 (car list) '() definedfunc)
+    (append (step1 (car list) '() definedfunc nil)
 	    (compile-func (cdr list) definedfunc)
   )))
 
 (defun compile-main (list definedfunc)
   (if (null list)
       nil
-    (append (step1 (car list) '() definedfunc)
+    (append (step1 (car list) '() definedfunc nil)
 	    (list '(PRINT))
 	    (compile-main (cdr list) definedfunc))))
 
@@ -190,15 +214,7 @@
    (compile-main (caddr list) (cadr list))
    (list '(HALT))))
 
-;(print (file-to-list "fibo.lisp"))
-
-;;(defun separate-defun-main (expr def funcnames main)
-;; (print (compile-parsed-file (separate-defun-main 
-;; 			     (file-to-list "fibo.lisp") 
-;; 			     '()
-;; 			     (list_assoc_make)
-;; 			     '())))
-
+;;(print (file-to-list "fibo.lisp"))
 
 (defun write-compiled-file (filename newfilename)
   (with-open-file 
@@ -223,5 +239,5 @@
 			 (print "Dans quel fichier voulez vous mettre le code compilé?")
 			 (read))))
 
-(write-compiled-file "fibo.lisp" "f.lvm") 
+(write-compiled-file "fibo.lisp" "fibo.livm") 
 ;;(launch-compilation)
