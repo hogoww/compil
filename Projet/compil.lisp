@@ -15,9 +15,11 @@
     (if (eq (caar expr) 'defun)
 	(separate-defun-main (cdr expr) 
 			     (cons (car expr) def)
-			     (if (null (list_assoc_search funcnames (cddar expr)))
+			     (progn
+			       (print (cadar expr))
+			     (if (null (list_assoc_search funcnames (cadar expr)))
 				 (list_assoc_add funcnames (cadar expr) 0);add list funcname
-			       (error "Function defined at least twice")) 
+			       (error "Function defined at least twice")))
 			     main)
       (separate-defun-main (cdr expr) def funcnames (cons (car expr) main)))))
 
@@ -55,7 +57,7 @@
 	      (error "~s Variable doesn't exist." expr)
 	      )))))
      ;; ((atom (car expr) ;si 
-
+     
      ((equal (car expr) 'if)
       (progn 
 	;;(print "if")
