@@ -1,6 +1,6 @@
 (load "assoclist.lisp")
 
-(setf STACK_SIZE 300) ;temp, till we actually load things and stuff
+(setf MEMORY_SIZE 300) ;temp, till we actually load things and stuff
 (setf HEAP_SIZE 0)
 (setf DPG 1)
 (setf DEQ 0)
@@ -79,13 +79,13 @@
 
     (let* ((flow (open (get symb 'file)));;we could add the error handling
 	   (line (read flow))
-	   (num-instruct 1))
+	   (num-instruct 1));memory-size-1 at the start, so no out of bound
       
-      (setf (get symb 'memory-size) (+ STACK_SIZE HEAP_SIZE))
+      (setf (get symb 'memory-size) MEMORY_SIZE)
 
       (setf (get symb 'MEM) (make-array (get symb 'memory-size)))
       
-      (loop while (not (equal line '(HALT)));to do memory-size-1 at the start, so no out of bound
+      (loop while (not (equal line '(HALT)))
 	    do
 	    ;;(print (- (get symb 'memory-size) num-instruct))
 	    ;;(print line)
@@ -104,6 +104,7 @@
 	       (- (get symb 'memory-size) num-instruct)
 	       line)
       (close flow)
+      (setf (get symb 'code_size) num-instruct)
       )
     
     
@@ -176,6 +177,8 @@
 		       (/ (funcall (get symb 'get-register) dest) (funcall (get symb 'get-register) target))))))
     
     (setf (get symb 'PUSH)
+	  (if (>= (- (get symb 'code_size) (get symb 'memory-size)) (funcall (get symb 'get-register) 'SP))
+	       (error "Stack overflow detected, your program will now stop")
 	  (lambda  (R)
 	    (progn
 	      ;;(print (funcall (get symb 'get-register) 'SP))
@@ -186,10 +189,12 @@
 	      (funcall (get symb 'set-register) 
 		       'SP 
 		       (+ (funcall (get symb 'get-register) 'SP) 1))
-	      )))
+	      ))))
 
     
-    (setf (get symb 'POP) 
+    (setf (get symb 'POP)
+	  (if (< (funcall (get symb 'get-register) 'BP)(funcall (get symb 'get-register) 'SP))
+	      (error "Stack underflow detected, your program will now stop")
 	  (lambda (R)
 	    (progn
 	      (funcall (get symb 'set-register)
@@ -199,7 +204,7 @@
 		       R
 		       (funcall (get symb 'get-addr)
 				(funcall (get symb 'get-register) 'SP)))
-	      )))
+	      ))))
     
     (setf (get symb 'CMP)
 	  (lambda (R1 R2); check if the order of the flag is ok
@@ -326,7 +331,7 @@
     ))
 
 
-(setf vm (make-vm 'VM "VM0" "f.lvm"))
+(setf vm (make-vm 'VM "VM0" "fibo.livm"))
 
 
 ;; (funcall (get vm 'print-property) 'R1)
