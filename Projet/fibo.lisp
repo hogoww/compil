@@ -5,18 +5,18 @@
     (* n (fact (- n 1)))))
 (fact 4)
 
-(defun fact (n acc) 
-   (if (= n 0)
-       acc
-     (fact (- n 1) (* acc n))))
-(fact 4 1)
+;; (defun fact (n acc) 
+;;    (if (= n 0)
+;;        acc
+;;      (fact (- n 1) (* acc n))))
+;; (fact 4 1)
 
 
 (defun fibo2 (term val prev)
   (if (= term 0) 
       prev
     (if (= term 1) 
-	val
+	(+ val prev);;val on stack overflow. this version gives the same result
       (fibo2 (- term 1) (+ val prev) val))))
 (fibo2 5 1 0)
 

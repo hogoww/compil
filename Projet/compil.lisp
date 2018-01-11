@@ -15,11 +15,9 @@
     (if (eq (caar expr) 'defun)
 	(separate-defun-main (cdr expr) 
 			     (cons (car expr) def)
-			     (progn
-			       (print (cadar expr))
 			     (if (null (list_assoc_search funcnames (cadar expr)))
-				 (list_assoc_add funcnames (cadar expr) 0);add list funcname
-			       (error "Function defined at least twice")))
+				 (list_assoc_add funcnames (cadar expr) (length (caddar expr)));add list funcname
+			       (error "Function defined at least twice"))
 			     main)
       (separate-defun-main (cdr expr) def funcnames (cons (car expr) main)))))
 
@@ -113,58 +111,61 @@
 		       (list (list 'JMP (car expr)))
 		       ))
 		     
-		     (if (list_assoc_search funcnames (car expr));user define func		
+		  (if (list_assoc_search funcnames (car expr));user define func	
+		      (if (/= (cdr (list_assoc_search funcnames (car expr)))
+			      (length (cdr expr)))
+			  (error "call ~s doesn't have the right number of arguments" (car expr))
+			(list 
+			 '(MOVE FP R1)		     
+			 '(MOVE SP FP)
+			 (list 'MOVE (- (length expr) 1) 'R0)
+			 '(PUSH R0)
+			 '(MOVE SP R2)
+			 (list 'SUB (length expr) 'R2);Enleve n+1 arguments
+			 '(PUSH R2)
+			 '(PUSH R1)
+			 (list 'JSR (car expr))
+			 '(POP R1)
+			 '(POP R2)
+			 '(MOVE R1 FP)
+			 '(MOVE R2 SP)))
+		    (if (equal (car expr) '+);;operator+
+			(append 
 			 (list 
-			  '(MOVE FP R1)		     
-			  '(MOVE SP FP)
-			  (list 'MOVE (- (length expr) 1) 'R0)
-			  '(PUSH R0)
-			  '(MOVE SP R2)
-			  (list 'SUB (length expr) 'R2);Enleve n+1 arguments
-			  '(PUSH R2)
-			  '(PUSH R1)
-			  (list 'JSR (car expr))
 			  '(POP R1)
-			  '(POP R2)
-			  '(MOVE R1 FP)
-			  '(MOVE R2 SP))
-		       (if (equal (car expr) '+);;operator+
-			   (append 
-			    (list 
-			     '(POP R1)
-			     '(POP R0)
-			     '(ADD R1 R0))
-			    (compile-op 'ADD (- (length expr) 3)));;minus the 3 arguments (+ x y), only generate anything if operator is used as a variadic operator
+			  '(POP R0)
+			  '(ADD R1 R0))
+			 (compile-op 'ADD (- (length expr) 3)));;minus the 3 arguments (+ x y), only generate anything if operator is used as a variadic operator
 
-			 (if (equal (car expr) '-);;operator-
-			     (append 
-			      (list 
-			       '(POP R1)
-			       '(POP R0)
-			       '(SUB R1 R0))
-			      (compile-op 'SUB (- (length expr) 3)));;minus the 3 arguments (+ x y), only generate anything if operator is used as a variadic operator
+		      (if (equal (car expr) '-);;operator-
+			  (append 
+			   (list 
+			    '(POP R1)
+			    '(POP R0)
+			    '(SUB R1 R0))
+			   (compile-op 'SUB (- (length expr) 3)));;minus the 3 arguments (+ x y), only generate anything if operator is used as a variadic operator
 
-			   (if (equal (car expr) '*);;operator*
-			       (append 
-				(list 
-				 '(POP R1)
-				 '(POP R0)
-				 '(MUL R1 R0))
-				(compile-op 'MUL (- (length expr) 3)));;minus the 3 arguments (+ x y), only generate anything if operator is used as a variadic operator
+			(if (equal (car expr) '*);;operator*
+			    (append 
+			     (list 
+			      '(POP R1)
+			      '(POP R0)
+			      '(MUL R1 R0))
+			     (compile-op 'MUL (- (length expr) 3)));;minus the 3 arguments (+ x y), only generate anything if operator is used as a variadic operator
 
-			     (if (equal (car expr) '/);;operator/
-				 (append 
-				  (list 
-				   '(POP R1)
-				   '(POP R0)
-				   '(DIV R1 R0))
-				  (compile-op 'DIV (- (length expr) 3)));;minus the 3 arguments (+ x y), only generate anything if operator is used as a variadic operator
-			       
-			       
-			       
-			       (list (list (car expr) (- (length expr) 1)));;we allow that a function isn't defined in the lisp vm but will be at runtime.
-			       )))))))))
-      
+			  (if (equal (car expr) '/);;operator/
+			      (append 
+			       (list 
+				'(POP R1)
+				'(POP R0)
+				'(DIV R1 R0))
+			       (compile-op 'DIV (- (length expr) 3)));;minus the 3 arguments (+ x y), only generate anything if operator is used as a variadic operator
+			    
+			    
+			    
+			    (list (list (car expr) (- (length expr) 1)));;we allow that a function isn't defined in the lisp vm but will be at runtime.
+			    )))))))))
+     
      )))
 
 (defun compile-terminal-recursivity 
