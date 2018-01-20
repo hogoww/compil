@@ -21,6 +21,15 @@
 			     main)
       (separate-defun-main (cdr expr) def funcnames (cons (car expr) main)))))
 
+(defun compile-progx (expr cDepth depth env funcnames)
+  (if (null expr)
+      nil
+    (append (step1 (car expr) env funcnames nil);;no terminal recursivity optimisation.
+	    (if (= depth cDepth)
+		nil
+	      '(POP R0)))));;if we don't need to keep the last returned value, we don't. Cleanup will remove the useless push/pop 
+
+
 (setf label 0)
 (defun next_label ()
   (setf label (+ label 1)))
@@ -97,7 +106,19 @@
 		  (list '(RTN))))))
      
      ;;Ajouter un cas QUOTE 
-     
+
+     ((and (search "prog" (string (car expr)))
+	   (< (length (car expr) 6));;very big cond since we need to allow user defined func with another name
+	   (or (equal (char (string (car expr)) 5) \#n);;progn
+	       (equal (parse-integer (char (string (car expr))) 5) 1);;prog1
+	       (equal (parse-integer (char (string (car expr))) 5) 2)));;prog2
+      (append 
+       (if (equal (char (string (car expr) 5) \#n))
+	   (compile-progx (cdr expr) 0 (- (lenght (cdr expr)) 1) env funcnames)
+	 (if (equal (parse-integer (char (string (car expr))) 5) 1)
+	     (compile-progx (cdr expr) 0 0 env funcnames);;prog1
+	   (compile-progx (cdr expr) 0 1 env funcnames)));;prog2
+       '(POP R0)));;res of progx in R0
      (t
       (progn 
 	;;(print "funcall")
@@ -210,6 +231,25 @@
 			(list_assoc_make) 
 			'())))
 
+(defun compile-cleanup (assembly)
+  ;; (progn (print assembly)
+  (cond ((null assembly)
+	 nil)
+	((null (cdr assembly))
+	 assembly)
+      ;;removing stuff here
+	((and (eq (caar assembly) 'PUSH)
+		(eq (caadr assembly) 'POP))
+	 
+	  (if (eq (cadar assembly) (cadadr assembly));;same register?
+	      (compile-cleanup (cddr assembly));;remove those instructions
+	    (cons (list 'MOVE (cadar assembly) (cadadr assembly)) (compile-cleanup (cddr assembly))));;morph to a move
+	  )
+      ;;cas général
+	 (t
+	  (cons (car assembly) (compile-cleanup (cdr assembly))))))
+
+ 
 (defun compile-parsed-file (list) 
   (append
    (compile-func (car list) (cadr list))
@@ -226,7 +266,7 @@
 	:if-exists :supersede 
 	:if-does-not-exist 
 	:create)
-   (let ((var (print (compile-fichier filename))))
+   (let ((var (print (compile-cleanup (compile-fichier filename)))))
      (loop while
 	   var
 	   do 
