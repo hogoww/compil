@@ -304,8 +304,8 @@
     (setf (get symb 'PRIMITIVE)
 	  (lambda (funcname nb_arg)
 	    (progn
-	      ;;(print funcname)
-	      ;;(print nb_arg)
+	      ;; (print funcname)
+	      ;; (print nb_arg)
 	      (funcall (get symb 'set-register)
 		       'R0 
 		       (apply funcname (reverse (funcall (get symb 'pop_to_list) nb_arg))))
@@ -313,7 +313,7 @@
 	      ;;(funcall (get symb 'print-memory))
 	      )))
 
-    (setf (get symb 'PRINT)
+    (setf (get symb 'PRINT-RES)
 	  (lambda ()
 	    (print (funcall (get symb 'get-register) 'R0))
 	    ))

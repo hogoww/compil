@@ -21,13 +21,15 @@
 			     main)
       (separate-defun-main (cdr expr) def funcnames (cons (car expr) main)))))
 
-(defun compile-progx (expr cDepth depth env funcnames)
+(defun compile-progx (expr cDepth depth env funcnames currentFunc)
   (if (null expr)
       nil
-    (append (step1 (car expr) env funcnames nil);;no terminal recursivity optimisation.
+    (append (step1 (car expr) env funcnames (if (= depth cDepth) currentFunc nil));;no terminal recursivity optimisation.
 	    (if (= depth cDepth)
-		nil
-	      '(POP R0)))));;if we don't need to keep the last returned value, we don't. Cleanup will remove the useless push/pop 
+		(list '(PUSH R0))
+	      )
+	    (compile-progx (cdr expr) (+ 1 cDepth) depth env funcnames currentFunc)
+	    )));;if we don't need to keep the last returned value, we don't. Cleanup will remove the useless push/pop 
 
 
 (setf label 0)
@@ -106,21 +108,23 @@
 		  (list '(RTN))))))
      
      ;;Ajouter un cas QUOTE 
-
-     ((and (search "prog" (string (car expr)))
-	   (< (length (car expr) 6));;very big cond since we need to allow user defined func with another name
-	   (or (equal (char (string (car expr)) 5) \#n);;progn
-	       (equal (parse-integer (char (string (car expr))) 5) 1);;prog1
-	       (equal (parse-integer (char (string (car expr))) 5) 2)));;prog2
-      (append 
-       (if (equal (char (string (car expr) 5) \#n))
-	   (compile-progx (cdr expr) 0 (- (lenght (cdr expr)) 1) env funcnames)
-	 (if (equal (parse-integer (char (string (car expr))) 5) 1)
-	     (compile-progx (cdr expr) 0 0 env funcnames);;prog1
-	   (compile-progx (cdr expr) 0 1 env funcnames)));;prog2
-       '(POP R0)));;res of progx in R0
-     (t
-      (progn 
+     
+     ((and (search "PROG" (string (car expr)))
+	   (< (length expr) 6);;very big cond since we need to allow user defined func with another name
+	   (or (equal (char (string (car expr)) 4) #\N);;progn
+	       (equal (char (string (car expr)) 4) #\1);;prog1
+	       (equal (char (string (car expr)) 4) #\2)));;prog2
+      (progn
+	;;(print expr)
+	(append 
+	 (if (equal (char (string (car expr)) 4) #\n)
+	     (compile-progx (cdr expr) 0 (- (lenght (cdr expr)) 1) env funcnames currentFunc);;-2 for name + start at 0
+	   (if (equal (char (string (car expr)) 4) #\1)
+	       (compile-progx (cdr expr) 0 0 env funcnames currentFunc);;prog1
+	     (compile-progx (cdr expr) 0 1 env funcnames currentFunc)));;prog2
+	 (list '(POP R0)))));;res of progx in R0
+      (t
+       (progn 
 	;;(print "funcall")
 	(append (compile-args (cdr expr) env funcnames);funcall
 		(if (eq (car expr)
@@ -221,7 +225,7 @@
   (if (null list)
       nil
     (append (step1 (car list) '() definedfunc nil)
-	    (list '(PRINT))
+	    (list '(PRINT-RES))
 	    (compile-main (cdr list) definedfunc))))
 
 (defun compile-fichier (file) 
@@ -266,7 +270,8 @@
 	:if-exists :supersede 
 	:if-does-not-exist 
 	:create)
-   (let ((var (print (compile-cleanup (compile-fichier filename)))))
+   (let ((var (print (compile-cleanup
+		      (compile-fichier filename)))))
      (loop while
 	   var
 	   do 
@@ -282,5 +287,6 @@
 			 (print "Dans quel fichier voulez vous mettre le code compilé?")
 			 (read))))
 
+;;(write-compiled-file "progn.lisp" "fibo.livm")
 (write-compiled-file "fibo.lisp" "fibo.livm") 
 ;;(launch-compilation)
