@@ -141,7 +141,11 @@
 	       (compile-progx (cdr expr) 0 0 env funcnames currentFunc);;prog1
 	     (compile-progx (cdr expr) 0 1 env funcnames currentFunc)));;prog2
 	 (list '(POP R0)))));;res of progx in R0
-      (t
+
+     ((equal (car expr) 'let)
+      (error "Let is a special operator not yet supported. Pretty tricky stuff"))
+     
+     (t
        (progn 
 	;;(print "funcall")
 	(append (compile-args (cdr expr) env funcnames);funcall
@@ -175,45 +179,45 @@
 		    (if (equal (car expr) '+);;operator+
 			(append 
 			 (list
-			  '(MOVE SP R0)
-			  (list 'SUB (- (length expr) 1) 'R0)
-			  '(LOAD R0 R0)
+			  '(POP R0)
 			  '(POP R1)
 			  '(ADD R1 R0))
-			 (compile-op 'ADD (- (length expr) 3));;minus the 3 arguments (+ x y), only generate anything if operator is used as a variadic operator
-			 (list '(POP R1)));;to cleanup the stack. Don't need that value.
+			 (compile-op 'ADD (- (length expr) 3)));;minus the 3 arguments (+ x y), only generate anything if operator is used as a variadic operator
 		      (if (equal (car expr) '-);;operator-
-			(append 
-			 (list
-			  '(MOVE SP R0)
-			  (list 'SUB (- (length expr) 1) 'R0)
-			  '(LOAD R0 R0)
-			  '(POP R1)
-			  '(SUB R1 R0))
-			 (compile-op 'SUB (- (length expr) 3));;minus the 3 arguments (+ x y), only generate anything if operator is used as a variadic operator
-			 (list '(POP R1)));;to cleanup the stack. Don't need that value.
-
-			(if (equal (car expr) '*);;operator*
+			  (append 
+			   (list
+			    '(MOVE SP R0)
+			    (list 'SUB (- (length expr) 1) 'R0)
+			    '(LOAD R0 R0)
+			    '(POP R1)
+			    '(SUB R1 R0))
+			   (compile-op 'SUB (- (length expr) 3));;minus the 3 arguments (+ x y), only generate anything if operator is used as a variadic operator
+			   (list '(POP R1)));;to cleanup the stack. Don't need that value.
+			
+			  (if (equal (car expr) '*);;operator*
 			    (append 
 			     (list 
-			      '(POP R1)
 			      '(POP R0)
+			      '(POP R1)
 			      '(MUL R1 R0))
 			     (compile-op 'MUL (- (length expr) 3)));;minus the 3 arguments (+ x y), only generate anything if operator is used as a variadic operator
 
 			  (if (equal (car expr) '/);;operator/
 			      (append 
-			       (list 
+			       (list
+				'(MOVE SP R0)
+				(list 'SUB (- (length expr) 1) 'R0)
+				'(LOAD R0 R0)
 				'(POP R1)
-				'(POP R0)
 				'(DIV R1 R0))
-			       (compile-op 'DIV (- (length expr) 3)));;minus the 3 arguments (+ x y), only generate anything if operator is used as a variadic operator
+			       (compile-op 'DIV (- (length expr) 3));;minus the 3 arguments (+ x y), only generate anything if operator is used as a variadic operator
+			       (list '(POP R1)));;to cleanup the stack. Don't need that value.
 			    
+			  
 			    
-			    
-			    (list (list (car expr) (- (length expr) 1)));;we allow that a function isn't defined in the lisp vm but will be at runtime.
-			    )))))))))
-     
+			  (list (list (car expr) (- (length expr) 1)));;we allow that a function isn't defined in the lisp vm but will be at runtime.
+			  )))))))))
+    
      )))
 
 (defun compile-terminal-recursivity 
