@@ -44,19 +44,6 @@
 	  (lambda (addr value)
 	    (setf (aref (get symb 'MEM) addr) value)))
     
-    ;; (setf (get symb 'code-end)
-    ;; 	  (lambda ()
-    ;; 	    (funcall (get symb 'get-addr) 0)
-    ;; 	    ))
-    
-    ;; (setf (get symb 'heap-start)
-    ;; 	  (lambda ()
-    ;; 	    (- (funcall (get symb 'code-end)) 1)))
-
-    ;; (setf (get symb 'heap-end)
-    ;; 	  (lambda ()
-    ;; 	    (+ (- (funcall (get symb 'code-end)) 1) ) HEAP_SIZE))
-
     (setf (get symb 'literalOrRegister)
 	  (lambda (v);if V is a literal, return the literal, otherwise return the register
 	    (if (integerp v)
@@ -72,7 +59,6 @@
 			   (funcall (get symb 'get-register) 'R0))
 		    (funcall (get symb 'pop_to_list) (- nb_arg 1))))))
     
-
     (setf (get symb 'labels) (list_assoc_make))
 
     (setf (get symb 'file) filename)
@@ -240,7 +226,13 @@
 	  (lambda (label)
 	    (if (equal (funcall (get symb 'get-register) 'FLG) DEQ)
 		(funcall (get symb 'JMP) label))))
-    
+
+    (setf (get symb 'JNE) 
+	  (lambda (label)
+	    (if (or (equal (funcall (get symb 'get-register) 'FLG) DPG)
+		    (equal (funcall (get symb 'get-register) 'FLG) DPP))
+		(funcall (get symb 'JMP) label))))
+	  
     (setf (get symb 'JPP ) 
 	  (lambda (label)
 	    (if (equal (funcall (get symb 'get-register) 'FLG) DPP)
@@ -248,7 +240,8 @@
 
     (setf (get symb 'JGE) 
 	  (lambda (label)
-	    (if (or (equal (funcall (get symb 'get-register) 'FLG) DPG) (equal (funcall (get symb 'get-register) 'FLG) DEQ))
+	    (if (or (equal (funcall (get symb 'get-register) 'FLG) DPG)
+		    (equal (funcall (get symb 'get-register) 'FLG) DEQ))
 		(funcall (get symb 'JMP) label))))
     
     (setf (get symb 'JPE) 

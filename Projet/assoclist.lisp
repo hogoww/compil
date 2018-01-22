@@ -24,6 +24,11 @@
 	(cdr la)
       (cons (car la) (list_assoc_rm (cdr la) key)))))
 
+(defun list_assoc_min (la cmin)
+  (if (null la)
+      cmin
+    (list_assoc_min (cdr la) (min (car la) cmin))))
+
 (defun list_assoc_print (la)
   (print la))
 

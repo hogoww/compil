@@ -24,7 +24,7 @@
 (defun compile-progx (expr cDepth depth env funcnames currentFunc)
   (if (null expr)
       nil
-    (append (step1 (car expr) env funcnames (if (= depth cDepth) currentFunc nil));;no terminal recursivity optimisation.
+    (append (step1 (car expr) env funcnames (if (= depth cDepth) currentFunc nil));;terminale recursivity only if progx return value is the right depth. Don't know how that would treat (progn (fibo 1) (fibo 2))... Might need some checking, or limitation.
 	    (if (= depth cDepth)
 		(list '(PUSH R0))
 	      )
@@ -43,10 +43,30 @@
 	    (list '(PUSH R0))
 	    (compile-args (cdr list-arg) env funcnames))))
 
-(defun make-env (list-arg nb-arg)
+
+(defun compile-let-expr (expr env funcnames)
+  (if (null expr)
+      nil
+    (append (step1 (car expr) env funcnames nil);;no terminal recursivity with let for now.
+	    (compile-let-expr (cdr expr) env funcnames)
+	    )))
+
+(defun compile-let-arg (listarg)
+  (if (null listarg)
+      nil
+    (append (if (atom listarg)
+		(list '(MOVE NIL R0));;pas de valeur associée à la variable
+	      (step1 (cadr listarg) env funcnames nil));;no terminal optimisation in lets.
+	    (list '(PUSH R0))
+	    (compile-let-arg (cdr listarg)))))
+
+(defun make-env-let (list-arg nb-arg)
+  )
+
+(defun make-env-func (list-arg nb-arg)
   (if (eq 0 nb-arg)
       nil
-    (cons (cons (car list-arg) nb-arg) (make-env (cdr list-arg) (- nb-arg 1)))))
+    (cons (cons (car list-arg) (- nb-arg)) (make-env-func (cdr list-arg) (- nb-arg 1)))))
 
 
 (defun step1 (expr env funcnames currentFunc);; currentFunc is the name of the function we're currently defining if it's eligible for terminal compilation
@@ -61,7 +81,7 @@
 	  (let ((a (list_assoc_search env expr)))
 	    (if (not (null a))
 		(list '(MOVE FP R0)
-		      (list 'SUB (cdr a) 'R0);(cdr a) position dans la liste d'arguments de la func
+		      (list 'ADD (cdr a) 'R0);(cdr a) position dans la liste d'arguments de la func
 		      '(LOAD R0 R0))
 	      (error "~s Variable doesn't exist." expr)
 	      )))))
@@ -101,13 +121,11 @@
 	    (error "You're trying to replace a lisp function")
 	  (append (list (list 'LABEL (cadr expr)))
 		  (step1 (cadddr expr) 
-			 (make-env (caddr expr) (length (caddr expr)))
+			 (make-env-func (caddr expr) (length (caddr expr)))
 			 funcnames
-			 (cadr expr)
-			 )
+			 (cadr expr))
 		  (list '(RTN))))))
      
-     ;;Ajouter un cas QUOTE 
      
      ((and (search "PROG" (string (car expr)))
 	   (< (length expr) 6);;very big cond since we need to allow user defined func with another name
@@ -156,19 +174,24 @@
 			 '(MOVE R2 SP)))
 		    (if (equal (car expr) '+);;operator+
 			(append 
-			 (list 
+			 (list
+			  '(MOVE SP R0)
+			  (list 'SUB (- (length expr) 1) 'R0)
+			  '(LOAD R0 R0)
 			  '(POP R1)
-			  '(POP R0)
 			  '(ADD R1 R0))
-			 (compile-op 'ADD (- (length expr) 3)));;minus the 3 arguments (+ x y), only generate anything if operator is used as a variadic operator
-
+			 (compile-op 'ADD (- (length expr) 3));;minus the 3 arguments (+ x y), only generate anything if operator is used as a variadic operator
+			 (list '(POP R1)));;to cleanup the stack. Don't need that value.
 		      (if (equal (car expr) '-);;operator-
-			  (append 
-			   (list 
-			    '(POP R1)
-			    '(POP R0)
-			    '(SUB R1 R0))
-			   (compile-op 'SUB (- (length expr) 3)));;minus the 3 arguments (+ x y), only generate anything if operator is used as a variadic operator
+			(append 
+			 (list
+			  '(MOVE SP R0)
+			  (list 'SUB (- (length expr) 1) 'R0)
+			  '(LOAD R0 R0)
+			  '(POP R1)
+			  '(SUB R1 R0))
+			 (compile-op 'SUB (- (length expr) 3));;minus the 3 arguments (+ x y), only generate anything if operator is used as a variadic operator
+			 (list '(POP R1)));;to cleanup the stack. Don't need that value.
 
 			(if (equal (car expr) '*);;operator*
 			    (append 
