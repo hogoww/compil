@@ -24,10 +24,15 @@
 	(cdr la)
       (cons (car la) (list_assoc_rm (cdr la) key)))))
 
-(defun list_assoc_min (la cmin)
+(defun list_assoc_max_aux (la cmax);;for environement creation purpose
   (if (null la)
-      cmin
-    (list_assoc_min (cdr la) (min (car la) cmin))))
+      cmax
+    (list_assoc_max_aux (cdr la) (max (car la) cmax))))
+
+(defun list_assoc_max_aux (la)
+  (if (null la)
+      0
+    (list_assoc_max_aux (cdr la) (cdadr la)
 
 (defun list_assoc_print (la)
   (print la))

@@ -21,33 +21,36 @@
 			     main)
       (separate-defun-main (cdr expr) def funcnames (cons (car expr) main)))))
 
-(defun compile-progx (expr cDepth depth env funcnames currentFunc)
+(defun compile-progx (expr cDepth depth env funcnames currentFunc prognVarOnStack letVarOnStack inDefun)
   (if (null expr)
       nil
-    (append (step1 (car expr) env funcnames (if (= depth cDepth) currentFunc nil));;terminale recursivity only if progx return value is the right depth. Don't know how that would treat (progn (fibo 1) (fibo 2))... Might need some checking, or limitation.
+    (append (step1 (car expr) env funcnames 
+		   (if (= depth cDepth) currentFunc nil) 
+		   (if (> cDepth depth) (+ 1 (prognVarOnStack)) prognVarOnStack)
+		   letVarOnStack inDefun);;terminale recursivity only if progx return value is the right depth. Don't know how that would treat (progn (fibo 1) (fibo 2))... Might need some checking, or limitation.
 	    (if (= depth cDepth)
 		(list '(PUSH R0))
 	      )
-	    (compile-progx (cdr expr) (+ 1 cDepth) depth env funcnames currentFunc)
-	    )));;if we don't need to keep the last returned value, we don't. Cleanup will remove the useless push/pop 
+	    (compile-progx (cdr expr) (+ 1 cDepth) depth env funcnames currentFunc prognVarOnStack letVarOnStack inDefun)
+	    )));;if we don't need to keep the last returned value, we don't.
 
 
 (setf label 0)
 (defun next_label ()
   (setf label (+ label 1)))
 
-(defun compile-args (list-arg env funcnames)
+(defun compile-args (list-arg env funcnames prognVarOnStack letVarOnStack inDefun)
   (if (null list-arg)
       nil
-    (append (step1 (car list-arg) env funcnames nil)
+    (append (step1 (car list-arg) env funcnames nil prognVarOnStack letVarOnStack inDefun)
 	    (list '(PUSH R0))
-	    (compile-args (cdr list-arg) env funcnames))))
+	    (compile-args (cdr list-arg) env funcnames prognVarOnStack letVarOnStack inDefun))))
 
 
-(defun compile-let-expr (expr env funcnames)
-  (if (null expr)
+(defun compile-let-expr (expr env funcnames prognVarOnStack letVarOnStack inDefun)
+  (if (null expr);;should have done this with list-assoc primitive. Too late to change it, and it's the same anyway.
       nil
-    (append (step1 (car expr) env funcnames nil);;no terminal recursivity with let for now.
+    (append (step1 (car expr) env funcnames nil prognVarOnStack letVarOnStack inDefun);;no terminal recursivity with let for now.
 	    (compile-let-expr (cdr expr) env funcnames)
 	    )))
 
@@ -56,12 +59,28 @@
       nil
     (append (if (atom listarg)
 		(list '(MOVE NIL R0));;pas de valeur associée à la variable
-	      (step1 (cadr listarg) env funcnames nil));;no terminal optimisation in lets.
+	      (step1 (cadr listarg) env funcnames nil prognVarOnStack letVarOnStack inDefun));;no terminal optimisation in lets.
 	    (list '(PUSH R0))
 	    (compile-let-arg (cdr listarg)))))
 
-(defun make-env-let (list-arg nb-arg)
-  )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;Unfinished;;;;;;;;;;;;;;;;;;;;;;;;
+(defun make-env-let (list-arg nb-arg currentEnv prognVarOnStack letVarOnStack inDefun)
+  (if (null list-arg)
+      nil
+    (list_assoc_add (current_env (if (atom (car list-arg))
+				     (car list-arg)
+				   (caar list-arg))
+				 (let ((maxi (list_assoc_max currentEnv)))
+				   (if (> 0 maxi);;No  on stack so far
+				       (if inDefun
+					   (+ prognVarOnStack letVarOnStack);;No env, frame pointer is pointing toward the first index on the stack
+					 (+ 3 prognVarOnStack letVarOnStack));;old fp/old sp/RA on stack, minimum.
+				     (if inDefun
+					 (+ maxi 1)
+				       (+ 3 prognVarOnStack letVarOnStack)
+				   
+    )))))))
 
 (defun make-env-func (list-arg nb-arg)
   (if (eq 0 nb-arg)
@@ -69,7 +88,7 @@
     (cons (cons (car list-arg) (- nb-arg)) (make-env-func (cdr list-arg) (- nb-arg 1)))))
 
 
-(defun step1 (expr env funcnames currentFunc);; currentFunc is the name of the function we're currently defining if it's eligible for terminal compilation
+(defun step1 (expr env funcnames currentFunc prognVarOnStack letVarOnStack inDefun);; currentFunc is the name of the function we're currently defining if it's eligible for terminal compilation
   (progn
     ;;(print expr)
     (cond 
@@ -93,7 +112,7 @@
 	;; (print (cadr expr))
 	;; (print (caddr expr))
 	;; (print (cadddr expr))
-	(append (step1 (cadr expr) env funcnames nil)
+	(append (step1 (cadr expr) env funcnames nil prognVarOnStack letVarOnStack inDefun)
 		(list '(CMP R0 nil))
 		(let ((else (next_label))
 		      (end (next_label)))
@@ -103,12 +122,12 @@
 		    (if (not (null (cadddr expr)))
 			(list 'JEQ else)
 		      (list 'JEQ end)))
-		   (step1 (caddr expr) env funcnames currentFunc)
+		   (step1 (caddr expr) env funcnames currentFunc prognVarOnStack letVarOnStack inDefun)
 		   
 		   (if (not (null (cadddr expr)))
 		       (append (list (list 'JMP end)
 				     (list 'LABEL else))
-			       (step1 (cadddr expr) env funcnames currentFunc)
+			       (step1 (cadddr expr) env funcnames currentFunc prognVarOnStack letVarOnStack inDefun)
 			       (list (list 'JMP end))
 			       )
 		     )
@@ -116,14 +135,15 @@
 
      ((equal (car expr) 'defun)
       (progn 
-	;;(print "defun")    
+	;;(print "defun")
 	(if (not (null (fboundp (cadr expr))))
-	    (error "You're trying to replace a lisp function")
+	    (error "You're trying to replace a lisp function, I won't support that !")
 	  (append (list (list 'LABEL (cadr expr)))
 		  (step1 (cadddr expr) 
 			 (make-env-func (caddr expr) (length (caddr expr)))
 			 funcnames
-			 (cadr expr))
+			 (cadr expr)
+			 prognVarOnStack letVarOnStack inDefun)
 		  (list '(RTN))))))
      
      
@@ -136,10 +156,11 @@
 	;;(print expr)
 	(append 
 	 (if (equal (char (string (car expr)) 4) #\n)
-	     (compile-progx (cdr expr) 0 (- (lenght (cdr expr)) 1) env funcnames currentFunc);;-2 for name + start at 0
+	     (compile-progx (cdr expr) 0 (lenght (cdr expr));;doesn't matter
+			    env funcnames currentFunc prognVarOnStack letVarOnStack inDefun);;-2 for name + start at 0
 	   (if (equal (char (string (car expr)) 4) #\1)
-	       (compile-progx (cdr expr) 0 0 env funcnames currentFunc);;prog1
-	     (compile-progx (cdr expr) 0 1 env funcnames currentFunc)));;prog2
+	       (compile-progx (cdr expr) 0 0 env funcnames currentFunc prognVarOnStack letVarOnStack inDefun);;prog1
+	     (compile-progx (cdr expr) 0 1 env funcnames currentFunc prognVarOnStack letVarOnStack inDefun)));;prog2
 	 (list '(POP R0)))));;res of progx in R0
 
      ((equal (car expr) 'let)
@@ -148,7 +169,7 @@
      (t
        (progn 
 	;;(print "funcall")
-	(append (compile-args (cdr expr) env funcnames);funcall
+	(append (compile-args (cdr expr) env funcnames prognVarOnStack letVarOnStack inDefun);funcall
 		(if (eq (car expr)
 			currentFunc);;eligible for terminal recursivity
 		    (progn 
@@ -244,14 +265,14 @@
 (defun compile-func (list definedfunc) 
   (if (null list)
       nil
-    (append (step1 (car list) '() definedfunc nil)
+    (append (step1 (car list) '() definedfunc nil 0 0 t)
 	    (compile-func (cdr list) definedfunc)
   )))
 
 (defun compile-main (list definedfunc)
   (if (null list)
       nil
-    (append (step1 (car list) '() definedfunc nil)
+    (append (step1 (car list) '() definedfunc nil 0 0 nil)
 	    (list '(PRINT-RES))
 	    (compile-main (cdr list) definedfunc))))
 
