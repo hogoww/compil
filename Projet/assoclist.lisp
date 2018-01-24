@@ -24,15 +24,16 @@
 	(cdr la)
       (cons (car la) (list_assoc_rm (cdr la) key)))))
 
-(defun list_assoc_max_aux (la cmax);;for environement creation purpose
-  (if (null la)
-      cmax
-    (list_assoc_max_aux (cdr la) (max (car la) cmax))))
+;;;;;;Shamefully false. We probably won't work on it more since it's unlikely we do the let/progx interaction
+;; (defun list_assoc_max_aux (la cmax);;for environement creation purpose
+;;   (if (null la)
+;;       cmax
+;;     (list_assoc_max_aux (cdr la) (max (car la) cmax))))
 
-(defun list_assoc_max_aux (la)
-  (if (null la)
-      0
-    (list_assoc_max_aux (cdr la) (cdadr la)
+;; (defun list_assoc_max (la)
+;;   (if (null la)
+;;       0
+;;     (list_assoc_max_aux (cdr la) (cdadr la))))
 
 (defun list_assoc_print (la)
   (print la))
