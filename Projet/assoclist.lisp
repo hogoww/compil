@@ -25,15 +25,15 @@
       (cons (car la) (list_assoc_rm (cdr la) key)))))
 
 ;;;;;;Shamefully false. We probably won't work on it more since it's unlikely we do the let/progx interaction
-;; (defun list_assoc_max_aux (la cmax);;for environement creation purpose
-;;   (if (null la)
-;;       cmax
-;;     (list_assoc_max_aux (cdr la) (max (car la) cmax))))
+(defun list_assoc_max_aux (la cmax);;for environement creation purpose
+  (if (null la)
+      cmax
+    (list_assoc_max_aux (cdr la) (max (cdar la) cmax))))
 
-;; (defun list_assoc_max (la)
-;;   (if (null la)
-;;       0
-;;     (list_assoc_max_aux (cdr la) (cdadr la))))
+(defun list_assoc_max (la)
+  (if (null la)
+      0
+    (list_assoc_max_aux (cdr la) (cdar la))))
 
 (defun list_assoc_print (la)
   (print la))
@@ -54,6 +54,8 @@
     (list_assoc_print l)
     (setf l (list_assoc_add l "6" 2))
 
+    (print (list_assoc_max l))
+    
     (list_assoc_print l)
     (setf l (list_assoc_rm l "5"))
     (setf l (list_assoc_rm l "6"))

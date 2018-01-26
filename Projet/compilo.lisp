@@ -65,22 +65,24 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;Unfinished;;;;;;;;;;;;;;;;;;;;;;;;
-(defun make-env-let (list-arg nb-arg currentEnv prognVarOnStack letVarOnStack inDefun)
+(defun make-env-let (list-arg currentEnv prognVarOnStack letVarOnStack inDefun)
   (if (null list-arg)
       nil
-    (list_assoc_add (current_env (if (atom (car list-arg))
+    (make-env-let (cdr list-arg) (list_assoc_add currentEnv (if (atom (car list-arg))
 				     (car list-arg)
 				   (caar list-arg))
 				 (let ((maxi (list_assoc_max currentEnv)))
-				   (if (> 0 maxi);;No  on stack so far
+				   (if (> 0 maxi)No on stack so far
 				       (if inDefun
-					   (+ prognVarOnStack letVarOnStack);;No env, frame pointer is pointing toward the first index on the stack
-					 (+ 3 prognVarOnStack letVarOnStack));;old fp/old sp/RA on stack, minimum.
+					   (+ prognVarOnStack);;No env, frame pointer is pointing toward the first index on the stack
+					 (+ 3 prognVarOnStack));;old fp/old sp/RA on stack, minimum.
 				     (if inDefun
-					 (+ maxi 1)
-				       (+ 3 prognVarOnStack letVarOnStack)
-				   
-    )))))))
+					 (+ maxi prognVarOnStack 1)
+				       (+ 3 prognVarOnStack 1)
+				       ))))
+		  prognVarOnStack letVarOnStack inDefun)))
+
+;;(print (make-env-let '(a b (z 1)) '() 0 0 t))
 
 (defun make-env-func (list-arg nb-arg)
   (if (eq 0 nb-arg)
