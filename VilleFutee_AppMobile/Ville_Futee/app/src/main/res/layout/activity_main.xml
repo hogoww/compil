@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:id="@+id/activity_main"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    tools:context="com.example.trogliano.ville_futee.MainActivity">
+
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:stretchColumns="0,1">
+
+        <TableRow
+            android:layout_weight="1.0">
+            <Button
+                android:text="Commerce"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/buttonCommerce"
+                android:background="@drawable/big_button_yellow"
+                android:layout_alignParentTop="true"
+                android:layout_toLeftOf="@+id/buttonVille"
+                android:layout_toStartOf="@+id/buttonVille"
+                />
+            <Button
+                android:text="Ville"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/buttonVille"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true"
+                android:background="@drawable/big_button_green"
+                />
+        </TableRow>
+
+        <TableRow
+            android:layout_weight="1.0">
+            <Button
+                android:text="Reseaux"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/buttonReseaux"
+                android:layout_below="@+id/buttonCommerce"
+                android:layout_toLeftOf="@+id/buttonVille"
+                android:layout_toStartOf="@+id/buttonVille"
+                android:background="@drawable/big_button_blue"/>
+            <Button
+                android:text="Alertes"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/buttonAlertes"
+                android:layout_below="@+id/buttonVille"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true"
+                android:background="@drawable/big_button_red"/>
+        </TableRow>
+    </TableLayout>
+
+    <Button
+        android:text="Button"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:id="@+id/buttonProfil"
+        android:background="@drawable/round_button"
+        />
+
+</RelativeLayout>

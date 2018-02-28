@@ -1,0 +1,12 @@
+git checkout -b  branchName pour changer de branch
+
+
+L'objectif de cette application est double : 
+1) de  mettre  en  relation  différents  profils  de  personnes  dans  le  cadre  de  "réseaux  sociaux thématiques" dans une ville donnée. Il s'agit par exemple :
+•de  mettre  en  contact  les  commerçants  et  les  clients  de  cette  ville.  Les  clients, utilisateurs  de  l'application,  peuvent  agir,  via  le  paramétrage  de  leur  profil,  pour restreindre  le  type  de  produits  qui  les  intéressent  et  ainsi  recevoir  des  offres  plus pertinentes  de  la  part  des  commerçants  de  la  ville  en  question.  Les  commerçants utilisateurs  de  l'application,  ou  d'une  interface  web  classique,  peuvent  ajouter  leurs offres  destinées  aux  clients.  Ces  offres  peuvent  par  exemple  être  des  annonces  de promotions,  de  soldes,  de  nouveaux  arrivages  de  produits,  etc..  Plusieurs  types d'annonces peuvent être choisis : texte, images et vidéos.
+•de mettre en contact les habitants d'un quartier donné d'une ville. Il s'agit, en fonction d’une adresse donnée, decréer un réseau pour ce quartier.
+•de mettre en contact les adhérents d'un club
+
+2) Avoir toutes les informations sur la ville 
+-ses commerces 
+-autres informations

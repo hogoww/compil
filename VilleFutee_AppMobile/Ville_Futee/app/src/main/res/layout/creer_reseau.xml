@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:id="@+id/creer_reseau"
+    android:layout_height="match_parent"
+    android:weightSum="20">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:orientation="horizontal"
+        android:background="@color/colorPrimary"
+        android:layout_weight="1"
+        >
+
+        <ImageButton
+            android:id="@+id/back_button_creer_reseau"
+            android:layout_gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="Créer un réseau dans votre ville"
+            android:gravity="center"
+            android:textSize="20dp"
+            android:textColor="#FFFFFFFF"/>
+
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:id="@+id/creer_reseau_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_weight="18"
+        >
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Nom du réseau  : "
+            android:textColor="#000000"
+            android:textSize="20dp"
+            android:paddingTop="30dp"
+            android:paddingLeft="10dp"/>
+        <EditText
+            android:id="@+id/nom_reseau"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPersonName"
+            android:hint="Entrez un nom pour le réseau"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Description (facultatif) :"
+            android:textSize="20dp"
+            android:textColor="#000000"
+            android:paddingTop="30dp"
+            android:paddingLeft="10dp"/>
+        <EditText
+            android:id="@+id/desc_reseau"
+            android:inputType="textMultiLine"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Entrez une description"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Votre quartier (facultatif) :"
+            android:textSize="20dp"
+            android:textColor="#000000"
+            android:paddingTop="30dp"
+            android:paddingLeft="10dp"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="(Seulement si vous voulez créer un réseau lié à un quartier)"
+            android:textSize="14dp"
+            android:paddingLeft="5dp"
+            android:textColor="#000000"
+            />
+
+        <EditText
+            android:id="@+id/quartier_reseau"
+            android:inputType="textMultiLine"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Entrez une description"/>
+
+
+
+    </LinearLayout>
+
+    <Button
+        android:layout_weight="1"
+        android:id="@+id/save_button_profil"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:text="Sauvegarder"/>
+
+</LinearLayout>

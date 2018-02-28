@@ -1,0 +1,4 @@
+Liste des requetes:
+-Avoir la liste des villes du client.
+-Ajouter une ville à la liste des villes du client.
+-Avoir les commerces d'une ville (possiblement déjà filtré avec les catégories)

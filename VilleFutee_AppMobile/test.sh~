@@ -1,0 +1,12 @@
+#!/bin/sh
+
+
+var1=0;
+while [ $var1 != done ]; do
+    echo "Choose a file to add (* for all) then done";
+    read var1;
+    echo "$var1";
+    if [ $var1 = \* ]; then
+         var1=done;
+    fi  
+done
