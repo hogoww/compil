@@ -44,19 +44,6 @@
 	  (lambda (addr value)
 	    (setf (aref (get symb 'MEM) addr) value)))
     
-    ;; (setf (get symb 'code-end)
-    ;; 	  (lambda ()
-    ;; 	    (funcall (get symb 'get-addr) 0)
-    ;; 	    ))
-    
-    ;; (setf (get symb 'heap-start)
-    ;; 	  (lambda ()
-    ;; 	    (- (funcall (get symb 'code-end)) 1)))
-
-    ;; (setf (get symb 'heap-end)
-    ;; 	  (lambda ()
-    ;; 	    (+ (- (funcall (get symb 'code-end)) 1) ) HEAP_SIZE))
-
     (setf (get symb 'literalOrRegister)
 	  (lambda (v);if V is a literal, return the literal, otherwise return the register
 	    (if (integerp v)
@@ -72,7 +59,6 @@
 			   (funcall (get symb 'get-register) 'R0))
 		    (funcall (get symb 'pop_to_list) (- nb_arg 1))))))
     
-
     (setf (get symb 'labels) (list_assoc_make))
 
     (setf (get symb 'file) filename)
@@ -103,8 +89,9 @@
       (funcall (get symb 'set-addr)
 	       (- (get symb 'memory-size) num-instruct)
 	       line)
+      (setf (get symb 'MAX_STACK) (- (get symb 'memory-size) num-instruct 1))
+      ;;(print (funcall (get symb 'get-addr) (get symb 'MAX_STACK)))
       (close flow)
-      (setf (get symb 'code_size) num-instruct)
       )
     
     
@@ -142,9 +129,16 @@
   
     (setf (get symb 'STORE) 
 	  (lambda  (reg addr)
-	    (funcall (get symb 'set-addr) 
-		     (funcall (get symb 'literalOrRegister) addr)
-		     (funcall (get symb 'get-register) reg))))
+	    ;; (progn
+	    ;; 	(funcall (get symb 'print-memory))
+	    ;; 	(print (funcall (get symb 'literalOrRegister) addr))
+	    ;; 	(print (funcall (get symb 'get-register) reg))
+	    ;; 	(prog1
+		    (funcall (get symb 'set-addr)
+			       (funcall (get symb 'literalOrRegister) addr)
+			       (funcall (get symb 'get-register) reg))
+		    ;; (funcall (get symb 'print-memory))
+		    ))
 
     (setf (get symb 'ADD) 
 	  (lambda (target dest)
@@ -177,34 +171,35 @@
 		       (/ (funcall (get symb 'get-register) dest) (funcall (get symb 'get-register) target))))))
     
     (setf (get symb 'PUSH)
-	  (if (>= (- (get symb 'code_size) (get symb 'memory-size)) (funcall (get symb 'get-register) 'SP))
-	       (error "Stack overflow detected, your program will now stop")
-	  (lambda  (R)
-	    (progn
-	      ;;(print (funcall (get symb 'get-register) 'SP))
-	      ;;(print (funcall (get symb 'get-register) R))
-	      (funcall (get symb 'set-addr)
-		       (funcall (get symb 'get-register) 'SP)
-		       (funcall (get symb 'get-register) R))
-	      (funcall (get symb 'set-register) 
-		       'SP 
-		       (+ (funcall (get symb 'get-register) 'SP) 1))
-	      ))))
-
+	    (lambda  (R)
+	      (if (> (funcall (get symb 'get-register) 'SP)
+		     (get symb 'MAX_STACK))
+		  (error "Stack overflow.")
+		(progn
+		  ;;(print (funcall (get symb 'get-register) 'SP))
+		  ;;(print (funcall (get symb 'get-register) R))
+		  (funcall (get symb 'set-addr)
+			   (funcall (get symb 'get-register) 'SP)
+			   (funcall (get symb 'get-register) R))
+		  (funcall (get symb 'set-register) 
+			   'SP 
+			   (+ (funcall (get symb 'get-register) 'SP) 1))
+		  ))))
     
     (setf (get symb 'POP)
-	  (if (< (funcall (get symb 'get-register) 'BP)(funcall (get symb 'get-register) 'SP))
-	      (error "Stack underflow detected, your program will now stop")
 	  (lambda (R)
-	    (progn
-	      (funcall (get symb 'set-register)
-		       'SP 
-		       (- (funcall (get symb 'get-register) 'SP) 1))
-	      (funcall (get symb 'set-register) 
-		       R
-		       (funcall (get symb 'get-addr)
-				(funcall (get symb 'get-register) 'SP)))
-	      ))))
+	    (if (>= (funcall (get symb 'get-register) 'BP)
+		   (funcall (get symb 'get-register) 'SP))
+		(error "Stack underflow.")
+	      (progn
+		(funcall (get symb 'set-register)
+			 'SP 
+			 (- (funcall (get symb 'get-register) 'SP) 1))
+		(funcall (get symb 'set-register) 
+			 R
+			 (funcall (get symb 'get-addr)
+				  (funcall (get symb 'get-register) 'SP)))
+		))))
     
     (setf (get symb 'CMP)
 	  (lambda (R1 R2); check if the order of the flag is ok
@@ -231,7 +226,13 @@
 	  (lambda (label)
 	    (if (equal (funcall (get symb 'get-register) 'FLG) DEQ)
 		(funcall (get symb 'JMP) label))))
-    
+
+    (setf (get symb 'JNE) 
+	  (lambda (label)
+	    (if (or (equal (funcall (get symb 'get-register) 'FLG) DPG)
+		    (equal (funcall (get symb 'get-register) 'FLG) DPP))
+		(funcall (get symb 'JMP) label))))
+	  
     (setf (get symb 'JPP ) 
 	  (lambda (label)
 	    (if (equal (funcall (get symb 'get-register) 'FLG) DPP)
@@ -239,7 +240,8 @@
 
     (setf (get symb 'JGE) 
 	  (lambda (label)
-	    (if (or (equal (funcall (get symb 'get-register) 'FLG) DPG) (equal (funcall (get symb 'get-register) 'FLG) DEQ))
+	    (if (or (equal (funcall (get symb 'get-register) 'FLG) DPG)
+		    (equal (funcall (get symb 'get-register) 'FLG) DEQ))
 		(funcall (get symb 'JMP) label))))
     
     (setf (get symb 'JPE) 
@@ -295,8 +297,8 @@
     (setf (get symb 'PRIMITIVE)
 	  (lambda (funcname nb_arg)
 	    (progn
-	      ;;(print funcname)
-	      ;;(print nb_arg)
+	      ;; (print funcname)
+	      ;; (print nb_arg)
 	      (funcall (get symb 'set-register)
 		       'R0 
 		       (apply funcname (reverse (funcall (get symb 'pop_to_list) nb_arg))))
@@ -304,7 +306,7 @@
 	      ;;(funcall (get symb 'print-memory))
 	      )))
 
-    (setf (get symb 'PRINT)
+    (setf (get symb 'PRINT-RES)
 	  (lambda ()
 	    (print (funcall (get symb 'get-register) 'R0))
 	    ))
@@ -342,11 +344,11 @@
 
 ;(funcall (get vm 'print-property) 'label)
 
-(funcall (get vm 'print-memory))
 (funcall (get vm 'print-property) 'labels)
 
 ;;(funcall (get vm 'print-property) 'PC)
 (funcall (get vm 'run))
+(funcall (get vm 'print-memory))
 
 
 ;;(funcall (get vm 'print-property) 'R1)
